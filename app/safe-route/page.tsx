@@ -3,7 +3,18 @@
 import { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
 import EnhancedMapView from "@/components/enhanced-map-view"
-import { MapPin, Clock, Cloud, AlertTriangle, CheckCircle, Navigation, Loader2, MapPinned } from "lucide-react"
+import {
+  MapPin,
+  Clock,
+  Cloud,
+  AlertTriangle,
+  CheckCircle,
+  Navigation,
+  Loader2,
+  MapPinned,
+  Play,
+  Square,
+} from "lucide-react"
 import { cityLocations } from "@/lib/india-data"
 
 interface Route {
@@ -14,6 +25,7 @@ interface Route {
   description: string
   waypoints: string[]
   coordinates?: Array<[number, number]>
+  safetyRecommendations?: string[]
 }
 
 interface Waypoint {
@@ -37,9 +49,11 @@ export default function SafeRoutePage() {
   const [availableDestinations, setAvailableDestinations] = useState<Waypoint[]>([])
   const [selectedWaypoints, setSelectedWaypoints] = useState<Waypoint[]>([])
   const [filterByType, setFilterByType] = useState<string>("all")
+  const [isNavigating, setIsNavigating] = useState(false)
+  const [navigationStep, setNavigationStep] = useState(0)
 
   useEffect(() => {
-    const destinations = (cityLocations[city] || []) as Waypoint[]
+    const destinations = (cityLocations[city as keyof typeof cityLocations] || []) as Waypoint[]
     setAvailableDestinations(destinations)
     setSelectedDestination("")
     setSelectedWaypoints([])
@@ -57,7 +71,7 @@ export default function SafeRoutePage() {
         },
         (error) => {
           setLocationError("Could not access your location. Using default location.")
-          setStartLocation({ lat: 28.6139, lng: 77.209 }) // Delhi default
+          setStartLocation({ lat: 28.6139, lng: 77.209 })
         },
       )
     }
@@ -89,6 +103,7 @@ export default function SafeRoutePage() {
     Hyderabad: { lat: 17.3833, lng: 78.4784 },
     Chennai: { lat: 13.0827, lng: 80.2707 },
     Gurgaon: { lat: 28.4595, lng: 77.0266 },
+    Bhopal: { lat: 23.1815, lng: 77.4104 },
   }
 
   const handleCalculateRoute = async () => {
@@ -134,6 +149,28 @@ export default function SafeRoutePage() {
     }
   }
 
+  const handleStartNavigation = () => {
+    setIsNavigating(true)
+    setNavigationStep(0)
+    // Simulate navigation progress
+    const interval = setInterval(() => {
+      setNavigationStep((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval)
+          setIsNavigating(false)
+          alert("Navigation Complete! You have reached your destination safely.")
+          return 100
+        }
+        return prev + Math.random() * 15
+      })
+    }, 3000)
+  }
+
+  const handleStopNavigation = () => {
+    setIsNavigating(false)
+    setNavigationStep(0)
+  }
+
   const filteredDestinations =
     filterByType === "all" ? availableDestinations : availableDestinations.filter((d) => d.type === filterByType)
 
@@ -154,6 +191,8 @@ export default function SafeRoutePage() {
     if (level === "low") return <CheckCircle className="w-5 h-5" />
     return <AlertTriangle className="w-5 h-5" />
   }
+
+  const selectedRouteData = routes.find((r) => r.type === selectedRoute)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-pink-50">
@@ -324,6 +363,41 @@ export default function SafeRoutePage() {
             </div>
           )}
 
+          {/* Navigation Progress */}
+          {isNavigating && selectedRouteData && (
+            <div className="bg-white rounded-2xl p-6 shadow-md mb-8 border-2 border-pink-100">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-foreground">Live Navigation</h3>
+                <button
+                  onClick={handleStopNavigation}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2"
+                >
+                  <Square className="w-4 h-4" />
+                  Stop Navigation
+                </button>
+              </div>
+              <div className="mb-4">
+                <div className="flex items-center gap-4 mb-3">
+                  <Navigation className="w-6 h-6 text-primary animate-spin" />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600">Following {selectedRoute} route...</p>
+                    <p className="font-semibold text-foreground">
+                      Distance remaining:{" "}
+                      {(((100 - navigationStep) * Number.parseFloat(selectedRouteData.distance)) / 100).toFixed(1)} km
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-primary h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${navigationStep}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">{Math.round(navigationStep)}% completed</p>
+              </div>
+            </div>
+          )}
+
           {/* Weather & Traffic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <div className="bg-white rounded-2xl p-6 shadow-md border-2 border-pink-100">
@@ -383,7 +457,7 @@ export default function SafeRoutePage() {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="mb-4">
                     <p className="font-semibold text-foreground mb-3">Waypoints:</p>
                     <div className="flex flex-wrap gap-2">
                       {route.waypoints.map((point, idx) => (
@@ -394,8 +468,26 @@ export default function SafeRoutePage() {
                     </div>
                   </div>
 
-                  {selectedRoute === route.type && (
-                    <button className="w-full mt-6 bg-primary text-white py-3 rounded-xl font-bold hover:bg-opacity-90 transition">
+                  {route.safetyRecommendations && route.safetyRecommendations.length > 0 && (
+                    <div className="mb-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                      <p className="font-semibold text-yellow-800 text-sm mb-2">Safety Recommendations:</p>
+                      <ul className="text-xs text-yellow-700 space-y-1">
+                        {route.safetyRecommendations.map((rec, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span>•</span>
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {selectedRoute === route.type && !isNavigating && (
+                    <button
+                      onClick={handleStartNavigation}
+                      className="w-full bg-primary text-white py-3 rounded-xl font-bold hover:bg-opacity-90 transition flex items-center justify-center gap-2"
+                    >
+                      <Play className="w-5 h-5" />
                       Start Navigation
                     </button>
                   )}
