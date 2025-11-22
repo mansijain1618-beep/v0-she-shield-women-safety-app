@@ -4,11 +4,13 @@ import { useState } from "react"
 import Link from "next/link"
 import Navbar from "@/components/navbar"
 import SOSButton from "@/components/sos-button"
-import { AlertCircle, MapPin, Heart, MessageCircle, BarChart3, Users } from "lucide-react"
+import HelplineModal from "@/components/helpline-modal"
+import { AlertCircle, MapPin, Heart, MessageCircle, BarChart3, Users, Phone } from "lucide-react"
 
 export default function HomePage() {
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null)
   const [alertSent, setAlertSent] = useState(false)
+  const [showHelplineModal, setShowHelplineModal] = useState(false)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-pink-50">
@@ -48,6 +50,17 @@ export default function HomePage() {
               <p className="text-green-700 font-semibold text-center">Alert sent to police and family members</p>
             </div>
           )}
+
+          {/* Quick Helpline Button */}
+          <div className="flex justify-center mb-12">
+            <button
+              onClick={() => setShowHelplineModal(true)}
+              className="flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-xl font-bold hover:bg-opacity-90 transition shadow-lg"
+            >
+              <Phone className="w-6 h-6" />
+              View Emergency Helplines
+            </button>
+          </div>
 
           {/* Quick Features Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
@@ -91,16 +104,18 @@ export default function HomePage() {
               </div>
             </Link>
 
-            <Link href="/check-in" className="group">
+            <Link href="/resources" className="group">
               <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all hover:border-primary border-2 border-transparent">
                 <Users className="w-8 h-8 text-primary mb-3" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">Community</h3>
-                <p className="text-gray-600">Connect with women and safety advocates in your area</p>
+                <h3 className="text-lg font-semibold text-foreground mb-2">Resources</h3>
+                <p className="text-gray-600">Learn about your rights, laws, and support resources</p>
               </div>
             </Link>
           </div>
         </div>
       </div>
+
+      <HelplineModal isOpen={showHelplineModal} onClose={() => setShowHelplineModal(false)} />
     </div>
   )
 }
