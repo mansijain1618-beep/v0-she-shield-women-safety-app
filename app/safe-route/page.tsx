@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
-import { MapPin, Clock, Cloud, AlertTriangle, CheckCircle } from "lucide-react"
+import MapView from "@/components/map-view"
+import { MapPin, Clock, Cloud, AlertTriangle, CheckCircle, Navigation, Loader2 } from "lucide-react"
 
 interface Route {
   type: "shortest" | "safest"
@@ -11,37 +12,101 @@ interface Route {
   riskLevel: "low" | "medium" | "high"
   description: string
   waypoints: string[]
+  coordinates?: Array<[number, number]>
 }
 
 export default function SafeRoutePage() {
   const [routes, setRoutes] = useState<Route[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [selectedRoute, setSelectedRoute] = useState<"shortest" | "safest">("safest")
+  const [startLocation, setStartLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [endLocation, setEndLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [city, setCity] = useState("Delhi")
+  const [timeOfDay, setTimeOfDay] = useState("Day (6 AM - 6 PM)")
+  const [locationError, setLocationError] = useState("")
+  const [mapReady, setMapReady] = useState(false)
 
   useEffect(() => {
-    // Simulate API call to fetch routes with mock data
-    setTimeout(() => {
-      setRoutes([
-        {
-          type: "shortest",
-          distance: "2.3 km",
-          duration: "8 mins",
-          riskLevel: "high",
-          description: "Direct route through downtown",
-          waypoints: ["Current Location", "Main Street", "Market Plaza", "Destination"],
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setStartLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          })
+          setLocationError("")
         },
-        {
-          type: "safest",
-          distance: "3.1 km",
-          duration: "12 mins",
-          riskLevel: "low",
-          description: "Well-lit route with high police presence",
-          waypoints: ["Current Location", "Residential Area", "Shopping District", "Highway 5", "Destination"],
+        (error) => {
+          setLocationError("Could not access your location. Using default location.")
+          setStartLocation({ lat: 28.6139, lng: 77.209 }) // Delhi default
         },
-      ])
-      setLoading(false)
-    }, 500)
+      )
+    }
   }, [])
+
+  const handleUseCurrentLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setStartLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          })
+          setLocationError("")
+        },
+        () => {
+          setLocationError("Could not access your location.")
+        },
+      )
+    }
+  }
+
+  const indianCities: Record<string, { lat: number; lng: number }> = {
+    Delhi: { lat: 28.6139, lng: 77.209 },
+    Mumbai: { lat: 19.076, lng: 72.8776 },
+    Bangalore: { lat: 12.9716, lng: 77.5946 },
+    Kolkata: { lat: 22.5726, lng: 88.3639 },
+    Pune: { lat: 18.5204, lng: 73.8567 },
+    Hyderabad: { lat: 17.3833, lng: 78.4784 },
+    Chennai: { lat: 13.0827, lng: 80.2707 },
+    Gurgaon: { lat: 28.4595, lng: 77.0266 },
+  }
+
+  const handleCalculateRoute = async () => {
+    if (!startLocation) {
+      setLocationError("Please enable location or select a starting point")
+      return
+    }
+
+    const destination = indianCities[city] || indianCities.Delhi
+
+    setLoading(true)
+    try {
+      const response = await fetch("/api/safe-routes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startLat: startLocation.lat,
+          startLng: startLocation.lng,
+          endLat: destination.lat,
+          endLng: destination.lng,
+          city,
+          timeOfDay,
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setRoutes(data.routes)
+        setEndLocation(destination)
+        setMapReady(true)
+      }
+    } catch (error) {
+      setLocationError("Failed to calculate routes. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -58,7 +123,6 @@ export default function SafeRoutePage() {
 
   const getRiskIcon = (level: string) => {
     if (level === "low") return <CheckCircle className="w-5 h-5" />
-    if (level === "high") return <AlertTriangle className="w-5 h-5" />
     return <AlertTriangle className="w-5 h-5" />
   }
 
@@ -67,41 +131,93 @@ export default function SafeRoutePage() {
       <Navbar />
 
       <div className="pt-12 pb-12 px-4 md:px-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl font-bold text-primary mb-2">Safe Route Recommendation</h1>
-          <p className="text-gray-600 mb-8">AI-powered routes based on crime data, traffic, and weather</p>
+          <p className="text-gray-600 mb-8">AI-powered routes based on real location, crime data, and weather</p>
+
+          {locationError && (
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6 text-yellow-800">
+              {locationError}
+            </div>
+          )}
 
           {/* Filters */}
           <div className="bg-white rounded-2xl p-6 shadow-md mb-8 border-2 border-pink-100">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-2">Current Location</label>
-                <input
-                  type="text"
-                  placeholder="Enter location"
-                  className="w-full px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white"
-                  defaultValue="123 Main St"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Your location"
+                    className="flex-1 px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white text-sm"
+                    value={startLocation ? `${startLocation.lat.toFixed(4)}, ${startLocation.lng.toFixed(4)}` : ""}
+                    readOnly
+                  />
+                  <button
+                    onClick={handleUseCurrentLocation}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition flex items-center gap-2"
+                  >
+                    <Navigation className="w-4 h-4" />
+                    Use My Location
+                  </button>
+                </div>
               </div>
+
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-2">Destination</label>
-                <input
-                  type="text"
-                  placeholder="Enter destination"
+                <label className="block text-sm font-semibold text-foreground mb-2">Destination City</label>
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
                   className="w-full px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white"
-                  defaultValue="Central Market"
-                />
+                >
+                  {Object.keys(indianCities).map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
               </div>
+
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-2">Time of Day</label>
-                <select className="w-full px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white">
+                <select
+                  value={timeOfDay}
+                  onChange={(e) => setTimeOfDay(e.target.value)}
+                  className="w-full px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white"
+                >
                   <option>Day (6 AM - 6 PM)</option>
                   <option>Evening (6 PM - 10 PM)</option>
                   <option>Night (10 PM - 6 AM)</option>
                 </select>
               </div>
+
+              <div className="flex items-end">
+                <button
+                  onClick={handleCalculateRoute}
+                  disabled={loading}
+                  className="w-full bg-primary text-white py-2 rounded-lg hover:bg-opacity-90 transition font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+                  {loading ? "Calculating..." : "Calculate Route"}
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Map Display */}
+          {mapReady && startLocation && endLocation && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-4">Route Map</h2>
+              <MapView
+                startLat={startLocation.lat}
+                startLng={startLocation.lng}
+                endLat={endLocation.lat}
+                endLng={endLocation.lng}
+                routeCoordinates={routes[0]?.coordinates}
+              />
+            </div>
+          )}
 
           {/* Weather & Traffic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -110,7 +226,7 @@ export default function SafeRoutePage() {
                 <Cloud className="w-6 h-6 text-blue-500" />
                 <h3 className="font-semibold text-foreground">Weather</h3>
               </div>
-              <p className="text-gray-600">Partly Cloudy • 72°F • Light winds</p>
+              <p className="text-gray-600">Partly Cloudy • 28°C • Light winds</p>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-md border-2 border-pink-100">
               <div className="flex items-center gap-3 mb-2">
@@ -122,11 +238,7 @@ export default function SafeRoutePage() {
           </div>
 
           {/* Routes Display */}
-          {loading ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600">Loading routes...</p>
-            </div>
-          ) : (
+          {routes.length > 0 ? (
             <div className="space-y-6">
               {routes.map((route) => (
                 <div
@@ -144,7 +256,9 @@ export default function SafeRoutePage() {
                       <p className="text-gray-600">{route.description}</p>
                     </div>
                     <span
-                      className={`px-4 py-2 rounded-full font-semibold flex items-center gap-2 border-2 ${getRiskColor(route.riskLevel)}`}
+                      className={`px-4 py-2 rounded-full font-semibold flex items-center gap-2 border-2 ${getRiskColor(
+                        route.riskLevel,
+                      )}`}
                     >
                       {getRiskIcon(route.riskLevel)}
                       {route.riskLevel.charAt(0).toUpperCase() + route.riskLevel.slice(1)} Risk
@@ -183,6 +297,13 @@ export default function SafeRoutePage() {
                 </div>
               ))}
             </div>
+          ) : (
+            !loading && (
+              <div className="text-center py-12 bg-white rounded-2xl border-2 border-pink-100">
+                <MapPin className="w-12 h-12 text-pink-300 mx-auto mb-4" />
+                <p className="text-gray-600 text-lg">Calculate a route to get started with safe navigation</p>
+              </div>
+            )
           )}
         </div>
       </div>
