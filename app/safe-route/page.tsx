@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
-import MapView from "@/components/map-view"
-import { MapPin, Clock, Cloud, AlertTriangle, CheckCircle, Navigation, Loader2 } from "lucide-react"
+import EnhancedMapView from "@/components/enhanced-map-view"
+import { MapPin, Clock, Cloud, AlertTriangle, CheckCircle, Navigation, Loader2, MapPinned } from "lucide-react"
+import { cityLocations } from "@/lib/india-data"
 
 interface Route {
   type: "shortest" | "safest"
@@ -13,6 +14,13 @@ interface Route {
   description: string
   waypoints: string[]
   coordinates?: Array<[number, number]>
+}
+
+interface Waypoint {
+  name: string
+  lat: number
+  lng: number
+  type?: string
 }
 
 export default function SafeRoutePage() {
@@ -25,6 +33,17 @@ export default function SafeRoutePage() {
   const [timeOfDay, setTimeOfDay] = useState("Day (6 AM - 6 PM)")
   const [locationError, setLocationError] = useState("")
   const [mapReady, setMapReady] = useState(false)
+  const [selectedDestination, setSelectedDestination] = useState("")
+  const [availableDestinations, setAvailableDestinations] = useState<Waypoint[]>([])
+  const [selectedWaypoints, setSelectedWaypoints] = useState<Waypoint[]>([])
+  const [filterByType, setFilterByType] = useState<string>("all")
+
+  useEffect(() => {
+    const destinations = (cityLocations[city] || []) as Waypoint[]
+    setAvailableDestinations(destinations)
+    setSelectedDestination("")
+    setSelectedWaypoints([])
+  }, [city])
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -78,7 +97,13 @@ export default function SafeRoutePage() {
       return
     }
 
-    const destination = indianCities[city] || indianCities.Delhi
+    if (!selectedDestination) {
+      setLocationError("Please select a destination in the city")
+      return
+    }
+
+    const destLocation = availableDestinations.find((d) => d.name === selectedDestination)
+    if (!destLocation) return
 
     setLoading(true)
     try {
@@ -88,17 +113,18 @@ export default function SafeRoutePage() {
         body: JSON.stringify({
           startLat: startLocation.lat,
           startLng: startLocation.lng,
-          endLat: destination.lat,
-          endLng: destination.lng,
+          endLat: destLocation.lat,
+          endLng: destLocation.lng,
           city,
           timeOfDay,
+          waypoints: selectedWaypoints.map((w) => ({ name: w.name, lat: w.lat, lng: w.lng })),
         }),
       })
 
       const data = await response.json()
       if (data.success) {
         setRoutes(data.routes)
-        setEndLocation(destination)
+        setEndLocation({ lat: destLocation.lat, lng: destLocation.lng })
         setMapReady(true)
       }
     } catch (error) {
@@ -107,6 +133,9 @@ export default function SafeRoutePage() {
       setLoading(false)
     }
   }
+
+  const filteredDestinations =
+    filterByType === "all" ? availableDestinations : availableDestinations.filter((d) => d.type === filterByType)
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -133,7 +162,7 @@ export default function SafeRoutePage() {
       <div className="pt-12 pb-12 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl font-bold text-primary mb-2">Safe Route Recommendation</h1>
-          <p className="text-gray-600 mb-8">AI-powered routes based on real location, crime data, and weather</p>
+          <p className="text-gray-600 mb-8">Navigate safely within cities with real locations and waypoints</p>
 
           {locationError && (
             <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6 text-yellow-800">
@@ -143,7 +172,7 @@ export default function SafeRoutePage() {
 
           {/* Filters */}
           <div className="bg-white rounded-2xl p-6 shadow-md mb-8 border-2 border-pink-100">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-2">Current Location</label>
                 <div className="flex gap-2">
@@ -159,13 +188,12 @@ export default function SafeRoutePage() {
                     className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition flex items-center gap-2"
                   >
                     <Navigation className="w-4 h-4" />
-                    Use My Location
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-2">Destination City</label>
+                <label className="block text-sm font-semibold text-foreground mb-2">Select City</label>
                 <select
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
@@ -192,28 +220,105 @@ export default function SafeRoutePage() {
                 </select>
               </div>
 
-              <div className="flex items-end">
-                <button
-                  onClick={handleCalculateRoute}
-                  disabled={loading}
-                  className="w-full bg-primary text-white py-2 rounded-lg hover:bg-opacity-90 transition font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-2">Filter By Type</label>
+                <select
+                  value={filterByType}
+                  onChange={(e) => setFilterByType(e.target.value)}
+                  className="w-full px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
-                  {loading ? "Calculating..." : "Calculate Route"}
-                </button>
+                  <option value="all">All Places</option>
+                  <option value="landmark">Landmarks</option>
+                  <option value="transport">Transport Hubs</option>
+                  <option value="hospital">Hospitals</option>
+                  <option value="police">Police Stations</option>
+                  <option value="park">Parks</option>
+                </select>
               </div>
             </div>
+
+            {/* Destination Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-foreground mb-3">Select Destination in {city}</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pb-4">
+                {filteredDestinations.map((dest) => (
+                  <button
+                    key={dest.name}
+                    onClick={() => setSelectedDestination(dest.name)}
+                    className={`px-4 py-3 rounded-lg border-2 text-left transition flex items-center gap-2 ${
+                      selectedDestination === dest.name
+                        ? "border-primary bg-pink-50"
+                        : "border-pink-100 bg-white hover:border-primary"
+                    }`}
+                  >
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-sm">{dest.name}</p>
+                      <p className="text-xs text-gray-500">{dest.category}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Optional Waypoints */}
+            {selectedDestination && (
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-foreground mb-3">
+                  Select Safe Waypoints (Optional)
+                </label>
+                <p className="text-xs text-gray-500 mb-3">
+                  Choose hospitals, police stations, or safe places along the route
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto pb-4">
+                  {availableDestinations
+                    .filter((d) => d.name !== selectedDestination && (d.type === "hospital" || d.type === "police"))
+                    .map((dest) => (
+                      <button
+                        key={dest.name}
+                        onClick={() => {
+                          if (selectedWaypoints.find((w) => w.name === dest.name)) {
+                            setSelectedWaypoints(selectedWaypoints.filter((w) => w.name !== dest.name))
+                          } else {
+                            setSelectedWaypoints([...selectedWaypoints, dest])
+                          }
+                        }}
+                        className={`px-3 py-2 rounded-lg border-2 text-left text-sm transition flex items-center gap-2 ${
+                          selectedWaypoints.find((w) => w.name === dest.name)
+                            ? "border-primary bg-pink-50"
+                            : "border-pink-100 bg-white hover:border-primary"
+                        }`}
+                      >
+                        <MapPinned className="w-3 h-3" />
+                        <div>
+                          <p className="font-semibold text-xs">{dest.name}</p>
+                        </div>
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={handleCalculateRoute}
+              disabled={loading || !selectedDestination}
+              className="w-full bg-primary text-white py-3 rounded-lg hover:bg-opacity-90 transition font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+              {loading ? "Calculating..." : "Calculate Safe Route"}
+            </button>
           </div>
 
           {/* Map Display */}
           {mapReady && startLocation && endLocation && (
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Route Map</h2>
-              <MapView
+              <h2 className="text-2xl font-bold text-foreground mb-4">Interactive Route Map</h2>
+              <EnhancedMapView
                 startLat={startLocation.lat}
                 startLng={startLocation.lng}
                 endLat={endLocation.lat}
                 endLng={endLocation.lng}
+                waypoints={selectedWaypoints}
                 routeCoordinates={routes[0]?.coordinates}
               />
             </div>
