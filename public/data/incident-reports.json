@@ -1,0 +1,28 @@
+{
+  "incidents": [
+    {
+      "id": 1,
+      "type": "harassment",
+      "location": "Downtown",
+      "timestamp": "2024-01-20T18:45:00Z",
+      "description": "Verbal harassment at bus stop",
+      "severity": "low"
+    },
+    {
+      "id": 2,
+      "type": "assault",
+      "location": "Central Park",
+      "timestamp": "2024-01-20T20:15:00Z",
+      "description": "Physical assault reported",
+      "severity": "high"
+    },
+    {
+      "id": 3,
+      "type": "suspicious",
+      "location": "Shopping District",
+      "timestamp": "2024-01-20T19:30:00Z",
+      "description": "Suspicious person following women",
+      "severity": "medium"
+    }
+  ]
+}

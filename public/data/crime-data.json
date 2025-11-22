@@ -1,0 +1,44 @@
+{
+  "crimeData": [
+    {
+      "location": "Downtown",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "riskLevel": "high",
+      "incidents": 23,
+      "lastUpdated": "2024-01-20"
+    },
+    {
+      "location": "Central Park",
+      "latitude": 40.7829,
+      "longitude": -73.9654,
+      "riskLevel": "medium",
+      "incidents": 18,
+      "lastUpdated": "2024-01-20"
+    },
+    {
+      "location": "Shopping District",
+      "latitude": 40.758,
+      "longitude": -73.9855,
+      "riskLevel": "low",
+      "incidents": 5,
+      "lastUpdated": "2024-01-20"
+    },
+    {
+      "location": "Residential Area",
+      "latitude": 40.7489,
+      "longitude": -73.968,
+      "riskLevel": "low",
+      "incidents": 3,
+      "lastUpdated": "2024-01-20"
+    },
+    {
+      "location": "Highway 5",
+      "latitude": 40.7282,
+      "longitude": -74.0076,
+      "riskLevel": "medium",
+      "incidents": 12,
+      "lastUpdated": "2024-01-20"
+    }
+  ]
+}

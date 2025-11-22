@@ -1,0 +1,22 @@
+{
+  "routes": [
+    {
+      "id": 1,
+      "name": "Downtown Route",
+      "distance": "2.3 km",
+      "duration": "8 mins",
+      "safetyScore": 45,
+      "riskLevel": "high",
+      "waypoints": ["Start", "Main Street", "Market Plaza", "End"]
+    },
+    {
+      "id": 2,
+      "name": "Residential Route",
+      "distance": "3.1 km",
+      "duration": "12 mins",
+      "safetyScore": 92,
+      "riskLevel": "low",
+      "waypoints": ["Start", "Residential Area", "Shopping District", "End"]
+    }
+  ]
+}
