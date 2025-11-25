@@ -16,6 +16,7 @@ import {
   Square,
 } from "lucide-react"
 import { cityLocations } from "@/lib/india-data"
+import { findNearestCity } from "@/lib/geolocation-utils"
 
 interface Route {
   type: "shortest" | "safest"
@@ -53,46 +54,37 @@ export default function SafeRoutePage() {
   const [navigationStep, setNavigationStep] = useState(0)
 
   useEffect(() => {
-    const destinations = (cityLocations[city as keyof typeof cityLocations] || []) as Waypoint[]
-    setAvailableDestinations(destinations)
-    setSelectedDestination("")
-    setSelectedWaypoints([])
-  }, [city])
-
-  useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          const userLat = position.coords.latitude
+          const userLng = position.coords.longitude
+          const detectedCity = findNearestCity(userLat, userLng)
+
           setStartLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
+            lat: userLat,
+            lng: userLng,
           })
+          setCity(detectedCity !== "Unknown" ? detectedCity : "Delhi")
           setLocationError("")
+          console.log("[v0] Detected city:", detectedCity, "Coordinates:", userLat, userLng)
         },
         (error) => {
-          setLocationError("Could not access your location. Using default location.")
-          setStartLocation({ lat: 28.6139, lng: 77.209 })
+          console.log("[v0] Geolocation error:", error.message)
+          setLocationError("Using default location. Enable location access for accuracy.")
+          setStartLocation({ lat: 28.7041, lng: 77.1025 })
+          setCity("Delhi")
         },
       )
     }
   }, [])
 
-  const handleUseCurrentLocation = () => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setStartLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          })
-          setLocationError("")
-        },
-        () => {
-          setLocationError("Could not access your location.")
-        },
-      )
-    }
-  }
+  useEffect(() => {
+    const destinations = (cityLocations[city as keyof typeof cityLocations] || []) as Waypoint[]
+    setAvailableDestinations(destinations)
+    setSelectedDestination("")
+    setSelectedWaypoints([])
+  }, [city])
 
   const indianCities: Record<string, { lat: number; lng: number }> = {
     Delhi: { lat: 28.6139, lng: 77.209 },
@@ -223,7 +215,22 @@ export default function SafeRoutePage() {
                     readOnly
                   />
                   <button
-                    onClick={handleUseCurrentLocation}
+                    onClick={() => {
+                      if ("geolocation" in navigator) {
+                        navigator.geolocation.getCurrentPosition(
+                          (position) => {
+                            setStartLocation({
+                              lat: position.coords.latitude,
+                              lng: position.coords.longitude,
+                            })
+                            setLocationError("")
+                          },
+                          () => {
+                            setLocationError("Could not access your location.")
+                          },
+                        )
+                      }
+                    }}
                     className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition flex items-center gap-2"
                   >
                     <Navigation className="w-4 h-4" />

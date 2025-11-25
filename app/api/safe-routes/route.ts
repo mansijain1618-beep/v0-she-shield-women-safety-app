@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { criminalAreasData } from "@/lib/india-data"
+import { crimeAreasData } from "@/lib/india-data"
 
 interface RouteRequest {
   startLat: number
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const distance = calculateDistance(startLat, startLng, endLat, endLng)
 
-    const criminalAreas = criminalAreasData[city as keyof typeof criminalAreasData] || []
+    const criminalAreas = crimeAreasData[city as keyof typeof crimeAreasData] || []
 
     // Calculate risk scores based on proximity to crime areas
     const startRiskScore = calculateAreaRiskScore(startLat, startLng, criminalAreas, timeOfDay)
