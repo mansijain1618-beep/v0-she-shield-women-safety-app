@@ -175,16 +175,26 @@ export default function ChatbotPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-pink-50">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-primary/8 rounded-full blur-3xl animate-float"></div>
+        <div
+          className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-accent/8 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "2s" }}
+        ></div>
+      </div>
+
       <Navbar />
 
-      <div className="pt-12 pb-12 px-4 md:px-8 h-screen flex flex-col">
+      <div className="pt-12 pb-12 px-4 md:px-8 h-screen flex flex-col relative z-10">
         <div className="max-w-2xl mx-auto w-full flex flex-col h-full">
-          <h1 className="text-4xl font-bold text-primary mb-2">SheShield AI Friend</h1>
-          <p className="text-gray-600 mb-6">Your supportive friend for safety, rights, and emergency help</p>
+          <div className="mb-6 animate-slide-down">
+            <h1 className="text-4xl font-bold text-primary mb-2">SheShield AI Friend</h1>
+            <p className="text-muted-foreground">Your supportive friend for safety, rights, and emergency help</p>
+          </div>
 
           {/* Chat Container */}
-          <div className="flex-1 bg-white rounded-2xl shadow-md border-2 border-pink-100 p-6 overflow-y-auto mb-4 flex flex-col">
+          <div className="flex-1 bg-card rounded-2xl shadow-md border-2 border-primary/30 p-6 overflow-y-auto mb-4 flex flex-col animate-fade-in">
             {messages.map((message) => (
               <div
                 key={message.id}

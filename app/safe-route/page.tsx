@@ -187,13 +187,23 @@ export default function SafeRoutePage() {
   const selectedRouteData = routes.find((r) => r.type === selectedRoute)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-pink-50">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-primary/8 rounded-full blur-3xl animate-float"></div>
+        <div
+          className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/8 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "1.5s" }}
+        ></div>
+      </div>
+
       <Navbar />
 
-      <div className="pt-12 pb-12 px-4 md:px-8">
+      <div className="pt-12 pb-12 px-4 md:px-8 relative z-10">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-primary mb-2">Safe Route Recommendation</h1>
-          <p className="text-gray-600 mb-8">Navigate safely within cities with real locations and waypoints</p>
+          <div className="mb-8 animate-slide-down">
+            <h1 className="text-4xl font-bold text-primary mb-2">Safe Route Recommendation</h1>
+            <p className="text-muted-foreground">Navigate safely within cities with real locations and waypoints</p>
+          </div>
 
           {locationError && (
             <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6 text-yellow-800">
