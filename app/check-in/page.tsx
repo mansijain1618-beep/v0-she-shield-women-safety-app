@@ -67,6 +67,7 @@ export default function CheckInPage() {
   const [isTracking, setIsTracking] = useState(false)
   const [selectedCity, setSelectedCity] = useState("")
   const [checkInType, setCheckInType] = useState<"safe" | "emergency">("safe")
+  const [sending, setSending] = useState(false)
 
   useEffect(() => {
     const savedLogs = localStorage.getItem("checkInLogs")
@@ -75,7 +76,6 @@ export default function CheckInPage() {
     if (savedLogs) setCheckInLogs(JSON.parse(savedLogs))
     if (savedContacts) setTrustedContacts(JSON.parse(savedContacts))
 
-    // Get initial location
     getLocationAndNearbyPolice()
   }, [])
 
@@ -89,7 +89,6 @@ export default function CheckInPage() {
           }
           setCoordinates(newCoords)
 
-          // Fetch nearby police stations
           if (selectedCity) {
             try {
               const response = await fetch("/api/nearby-police", {
@@ -139,9 +138,15 @@ export default function CheckInPage() {
       return
     }
 
+    if (trustedContacts.length === 0) {
+      alert("Please add at least one trusted contact")
+      return
+    }
+
+    setSending(true)
+
     try {
-      // Send alert to all trusted contacts
-      const response = await fetch("/api/send-alert", {
+      const response = await fetch("/api/send-email-alert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -151,12 +156,13 @@ export default function CheckInPage() {
           longitude: coordinates.lng,
           message: message || `${checkInType === "emergency" ? "EMERGENCY" : "Safety"} check-in from ${location}`,
           userName: "SheShield User",
+          checkInType,
         }),
       })
 
       const alertData = await response.json()
 
-      if (response.ok) {
+      if (response.ok && alertData.success) {
         const newLog: CheckInLog = {
           id: Date.now().toString(),
           timestamp: new Date().toLocaleString("en-IN"),
@@ -173,7 +179,7 @@ export default function CheckInPage() {
 
         const contactList = trustedContacts.map((c) => c.name).join(", ")
         alert(
-          `✓ ${checkInType.toUpperCase()} Check-in sent!\n\nNotified: ${contactList || "No contacts"}\nLocation: ${location}\nCoordinates: ${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`,
+          `✓ ${checkInType.toUpperCase()} Check-in sent!\n\nNotified: ${contactList}\nLocation: ${location}\nCoordinates: ${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}\n\nEmails will be sent to: ${trustedContacts.map((c) => c.email).join(", ")}`,
         )
 
         setLocation("")
@@ -181,16 +187,26 @@ export default function CheckInPage() {
         setSuggestedCities([])
         setShowCheckInForm(false)
         setCheckInType("safe")
+      } else {
+        alert("Failed to send check-in. Please try again.")
       }
     } catch (error) {
       console.error("Check-in error:", error)
       alert("Failed to send check-in. Please try again.")
+    } finally {
+      setSending(false)
     }
   }
 
   const handleAddContact = () => {
     if (!contactName.trim() || !contactPhone.trim() || !contactEmail.trim()) {
       alert("Please fill all fields")
+      return
+    }
+
+    // Validate email format
+    if (!contactEmail.includes("@")) {
+      alert("Please enter a valid email address")
       return
     }
 
@@ -223,18 +239,17 @@ export default function CheckInPage() {
     if (!isTracking) {
       const interval = setInterval(() => {
         getLocationAndNearbyPolice()
-      }, 10000) // Update every 10 seconds
+      }, 10000)
       return () => clearInterval(interval)
     }
   }
 
   return (
-    <div className="min-h-screen relative">
-      {/* Background decorative elements */}
+    <div className="min-h-screen relative bg-gradient-to-b from-background via-background to-background">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-10 right-10 w-40 h-40 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-10 right-10 w-40 h-40 bg-gradient-to-br from-primary/15 to-secondary/10 rounded-full blur-3xl animate-float"></div>
         <div
-          className="absolute bottom-20 left-10 w-32 h-32 bg-gradient-to-br from-accent/10 to-primary/10 rounded-full blur-3xl animate-float"
+          className="absolute bottom-20 left-10 w-32 h-32 bg-gradient-to-br from-accent/15 to-primary/10 rounded-full blur-3xl animate-float"
           style={{ animationDelay: "1s" }}
         ></div>
       </div>
@@ -243,7 +258,7 @@ export default function CheckInPage() {
 
       <div className="pt-12 pb-12 px-4 md:px-8 relative z-10">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2 animate-slide-up">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2 animate-slide-up">
             Check-In System
           </h1>
           <p className="text-foreground/70 mb-8 animate-slide-up" style={{ animationDelay: "0.1s" }}>
@@ -252,18 +267,20 @@ export default function CheckInPage() {
 
           {/* Trusted Contacts Section */}
           <div
-            className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl mb-8 border-2 border-primary/20 animate-slide-up hover:border-primary/40 transition"
+            className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl mb-8 border-2 border-primary/20 animate-slide-up hover:border-primary/40 hover:shadow-2xl transition-all"
             style={{ animationDelay: "0.2s" }}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
-                <Users className="w-7 h-7 animate-bounce-gentle" />
+                <div className="p-2 bg-gradient-to-br from-primary/20 to-secondary/10 rounded-xl">
+                  <Users className="w-7 h-7 animate-bounce-light" />
+                </div>
                 Trusted Contacts ({trustedContacts.length})
               </h2>
               {!showContactForm && (
                 <button
                   onClick={() => setShowContactForm(true)}
-                  className="bg-gradient-to-r from-primary to-accent text-primary-foreground px-6 py-3 rounded-full font-bold hover:shadow-lg hover:scale-105 transition transform flex items-center gap-2 animate-glow-lavender"
+                  className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-6 py-3 rounded-full font-bold hover:shadow-lg hover:scale-105 transition-all transform flex items-center gap-2 animate-glow-gradient"
                 >
                   <Plus className="w-5 h-5" />
                   Add Contact
@@ -272,7 +289,7 @@ export default function CheckInPage() {
             </div>
 
             {showContactForm && (
-              <div className="bg-card rounded-2xl p-6 mb-6 border-2 border-primary/30 space-y-4 animate-slide-down">
+              <div className="bg-card rounded-2xl p-6 mb-6 border-2 border-primary/30 space-y-4 animate-slide-in-left">
                 <input
                   type="text"
                   placeholder="Contact Name"
@@ -289,7 +306,7 @@ export default function CheckInPage() {
                 />
                 <input
                   type="email"
-                  placeholder="Email Address"
+                  placeholder="Email Address (required for alerts)"
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 bg-background transition"
@@ -297,7 +314,7 @@ export default function CheckInPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={handleAddContact}
-                    className="flex-1 bg-gradient-to-r from-primary to-accent text-primary-foreground py-3 rounded-xl font-bold hover:shadow-lg transition transform hover:scale-105"
+                    className="flex-1 bg-gradient-to-r from-primary to-secondary text-primary-foreground py-3 rounded-xl font-bold hover:shadow-lg transition-all transform hover:scale-105"
                   >
                     Save Contact
                   </button>
@@ -313,7 +330,9 @@ export default function CheckInPage() {
 
             {trustedContacts.length === 0 ? (
               <div className="bg-background rounded-2xl p-8 text-center border-2 border-primary/20">
-                <Users className="w-16 h-16 text-accent/50 mx-auto mb-4 animate-bounce-gentle" />
+                <div className="p-3 bg-gradient-to-br from-primary/20 to-secondary/10 rounded-xl w-fit mx-auto mb-4">
+                  <Users className="w-16 h-16 text-accent/70 animate-bounce-light" />
+                </div>
                 <p className="text-foreground/70 text-lg">Add trusted contacts to send them safety alerts</p>
               </div>
             ) : (
@@ -345,26 +364,25 @@ export default function CheckInPage() {
 
           {/* Check-In Form */}
           <div
-            className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl mb-8 border-2 border-accent/20 animate-slide-up"
+            className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl mb-8 border-2 border-secondary/20 animate-slide-up hover:border-secondary/40 hover:shadow-2xl transition-all"
             style={{ animationDelay: "0.3s" }}
           >
             {!showCheckInForm ? (
               <div className="space-y-4">
                 <button
                   onClick={() => setShowCheckInForm(true)}
-                  className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground py-5 px-8 rounded-2xl font-bold hover:shadow-2xl transition hover:scale-105 animate-pulse-scale"
+                  className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-primary via-secondary to-accent text-primary-foreground py-5 px-8 rounded-2xl font-bold hover:shadow-2xl transition-all hover:scale-105 animate-pulse-scale"
                 >
                   <Heart className="w-7 h-7 animate-heartbeat" />
                   Send Safety Check-In
                 </button>
 
-                {/* Tracking Toggle */}
                 <button
                   onClick={toggleTracking}
-                  className={`w-full flex items-center justify-center gap-3 py-4 px-8 rounded-2xl font-bold transition hover:scale-105 ${
+                  className={`w-full flex items-center justify-center gap-3 py-4 px-8 rounded-2xl font-bold transition-all hover:scale-105 ${
                     isTracking
                       ? "bg-destructive/20 text-destructive border-2 border-destructive animate-pulse"
-                      : "bg-secondary/20 text-secondary border-2 border-secondary"
+                      : "bg-secondary/20 text-secondary border-2 border-secondary/50"
                   }`}
                 >
                   <Navigation className={`w-6 h-6 ${isTracking ? "animate-rotate-slow" : ""}`} />
@@ -372,27 +390,27 @@ export default function CheckInPage() {
                 </button>
               </div>
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-5 animate-slide-in-left">
                 {/* Check-In Type Selection */}
                 <div>
                   <label className="block text-sm font-semibold text-foreground mb-3">Alert Type</label>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setCheckInType("safe")}
-                      className={`flex-1 py-3 px-4 rounded-xl font-bold transition border-2 ${
+                      className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all border-2 ${
                         checkInType === "safe"
-                          ? "bg-primary text-primary-foreground border-primary"
+                          ? "bg-primary text-primary-foreground border-primary shadow-lg"
                           : "bg-background text-foreground border-primary/30 hover:border-primary"
                       }`}
                     >
                       <Check className="w-5 h-5 inline mr-2" />
-                      Safe
+                      Safe Arrival
                     </button>
                     <button
                       onClick={() => setCheckInType("emergency")}
-                      className={`flex-1 py-3 px-4 rounded-xl font-bold transition border-2 ${
+                      className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all border-2 ${
                         checkInType === "emergency"
-                          ? "bg-destructive text-destructive-foreground border-destructive animate-pulse"
+                          ? "bg-destructive text-destructive-foreground border-destructive shadow-lg animate-pulse"
                           : "bg-background text-foreground border-destructive/30 hover:border-destructive"
                       }`}
                     >
@@ -418,7 +436,7 @@ export default function CheckInPage() {
                     </p>
                   )}
                   {suggestedCities.length > 0 && (
-                    <div className="mt-2 border-2 border-primary/30 rounded-xl bg-card max-h-40 overflow-y-auto animate-slide-down">
+                    <div className="mt-2 border-2 border-primary/30 rounded-xl bg-card max-h-40 overflow-y-auto animate-slide-in-left">
                       {suggestedCities.map((city) => (
                         <button
                           key={city}
@@ -450,7 +468,6 @@ export default function CheckInPage() {
                   />
                 </div>
 
-                {/* Nearby Police Stations */}
                 {nearbyPolice.length > 0 && (
                   <div className="bg-destructive/10 border-2 border-destructive/30 rounded-xl p-4">
                     <h3 className="font-bold text-destructive flex items-center gap-2 mb-3">
@@ -472,7 +489,7 @@ export default function CheckInPage() {
 
                 {trustedContacts.length === 0 && (
                   <div className="bg-accent/10 border-2 border-accent rounded-xl p-4 flex items-start gap-3">
-                    <AlertCircle className="w-6 h-6 text-accent flex-shrink-0 mt-0.5 animate-bounce-gentle" />
+                    <AlertCircle className="w-6 h-6 text-accent flex-shrink-0 mt-0.5 animate-bounce-light" />
                     <p className="text-sm text-foreground/70">Add trusted contacts above to send them notifications</p>
                   </div>
                 )}
@@ -480,17 +497,14 @@ export default function CheckInPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={handleCheckIn}
-                    className="flex-1 bg-gradient-to-r from-primary to-accent text-primary-foreground py-4 rounded-xl font-bold hover:shadow-lg transition hover:scale-105 flex items-center justify-center gap-2"
+                    disabled={sending || trustedContacts.length === 0}
+                    className="flex-1 bg-gradient-to-r from-primary to-secondary text-primary-foreground py-4 px-8 rounded-2xl font-bold hover:shadow-xl transition-all hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    <Send className="w-5 h-5" />
-                    Send Check-In
+                    {sending ? "Sending..." : "Send Check-In"}
                   </button>
                   <button
-                    onClick={() => {
-                      setShowCheckInForm(false)
-                      setSuggestedCities([])
-                    }}
-                    className="flex-1 bg-muted text-foreground py-4 rounded-xl font-bold hover:bg-muted/80 transition"
+                    onClick={() => setShowCheckInForm(false)}
+                    className="flex-1 bg-muted text-foreground py-4 px-8 rounded-2xl font-bold hover:bg-muted/80 transition"
                   >
                     Cancel
                   </button>
@@ -500,57 +514,43 @@ export default function CheckInPage() {
           </div>
 
           {/* Check-In History */}
-          <div className="animate-slide-up" style={{ animationDelay: "0.4s" }}>
-            <h2 className="text-2xl font-bold text-foreground mb-4">Recent Check-Ins</h2>
-            {checkInLogs.length === 0 ? (
-              <div className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 text-center shadow-xl border-2 border-primary/20">
-                <Heart className="w-16 h-16 text-primary/30 mx-auto mb-4 animate-heartbeat" />
-                <p className="text-foreground/70 text-lg">No check-ins yet. Stay safe!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {checkInLogs.map((log, idx) => (
+          {checkInLogs.length > 0 && (
+            <div
+              className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border-2 border-primary/20 animate-slide-up"
+              style={{ animationDelay: "0.4s" }}
+            >
+              <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
+                <Clock className="w-7 h-7" />
+                Recent Check-Ins
+              </h2>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {checkInLogs.slice(0, 5).map((log, idx) => (
                   <div
                     key={log.id}
-                    className={`rounded-2xl p-4 shadow-lg border-2 flex items-start justify-between animate-slide-up ${
-                      log.status === "emergency"
-                        ? "bg-destructive/10 border-destructive/50"
-                        : "bg-card/80 border-primary/20 hover:border-primary/50"
-                    }`}
+                    className="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 rounded-xl border-l-4 border-primary animate-slide-up"
                     style={{ animationDelay: `${0.05 * idx}s` }}
                   >
-                    <div className="flex-1">
-                      <p className="font-semibold text-foreground flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-primary" />
-                        {log.location}
-                      </p>
-                      <p className="text-sm text-foreground/60 flex items-center gap-2 mt-1">
-                        <Clock className="w-4 h-4" />
-                        {log.timestamp}
-                      </p>
-                      {log.message && <p className="text-sm text-foreground/70 mt-2 italic">"{log.message}"</p>}
-                      {log.notifiedContacts.length > 0 && (
-                        <p className="text-xs text-primary mt-2 flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          Notified: {log.notifiedContacts.join(", ")}
-                        </p>
-                      )}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-semibold text-foreground">{log.location}</p>
+                        <p className="text-sm text-foreground/60">{log.timestamp}</p>
+                        {log.coordinates && (
+                          <p className="text-xs text-foreground/50">
+                            📍 {log.coordinates.lat.toFixed(4)}, {log.coordinates.lng.toFixed(4)}
+                          </p>
+                        )}
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-bold ${log.status === "safe" ? "bg-green-500/20 text-green-700" : "bg-red-500/20 text-red-700"}`}
+                      >
+                        {log.status.toUpperCase()}
+                      </span>
                     </div>
-                    <span
-                      className={`px-4 py-2 rounded-full text-sm font-bold flex items-center gap-1 whitespace-nowrap ml-4 ${
-                        log.status === "emergency"
-                          ? "bg-destructive/20 text-destructive animate-pulse"
-                          : "bg-primary/20 text-primary"
-                      }`}
-                    >
-                      <Check className="w-4 h-4" />
-                      {log.status === "emergency" ? "EMERGENCY" : "Safe"}
-                    </span>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

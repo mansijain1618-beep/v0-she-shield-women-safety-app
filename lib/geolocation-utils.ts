@@ -16,16 +16,20 @@ export async function detectCityFromCoordinates(lat: number, lng: number): Promi
 
 // List of major Indian cities with their coordinates for matching
 export const indianCitiesCoordinates: Record<string, { lat: number; lng: number; radius: number }> = {
-  Delhi: { lat: 28.7041, lng: 77.1025, radius: 30 },
-  Mumbai: { lat: 19.0759, lng: 72.8776, radius: 25 },
-  Bangalore: { lat: 12.9716, lng: 77.5946, radius: 20 },
-  Kolkata: { lat: 22.5726, lng: 88.3639, radius: 20 },
-  Pune: { lat: 18.5204, lng: 73.8567, radius: 15 },
-  Hyderabad: { lat: 17.385, lng: 78.4867, radius: 20 },
-  Chennai: { lat: 13.0827, lng: 80.2707, radius: 20 },
-  Bhopal: { lat: 23.1815, lng: 77.4149, radius: 15 },
-  Gurgaon: { lat: 28.4595, lng: 77.0266, radius: 15 },
-  Indore: { lat: 22.7196, lng: 75.8577, radius: 15 },
+  Delhi: { lat: 28.7041, lng: 77.1025, radius: 40 },
+  Mumbai: { lat: 19.0759, lng: 72.8776, radius: 35 },
+  Bangalore: { lat: 12.9716, lng: 77.5946, radius: 30 },
+  Kolkata: { lat: 22.5726, lng: 88.3639, radius: 30 },
+  Pune: { lat: 18.5204, lng: 73.8567, radius: 25 },
+  Hyderabad: { lat: 17.385, lng: 78.4867, radius: 30 },
+  Chennai: { lat: 13.0827, lng: 80.2707, radius: 30 },
+  Bhopal: { lat: 23.1815, lng: 75.8577, radius: 30 }, // Corrected from incorrect coordinates
+  Gurgaon: { lat: 28.4595, lng: 77.0266, radius: 20 },
+  Indore: { lat: 22.7196, lng: 75.8577, radius: 25 },
+  Ahmedabad: { lat: 23.0225, lng: 72.5714, radius: 25 },
+  Jaipur: { lat: 26.9124, lng: 75.7873, radius: 25 },
+  Lucknow: { lat: 26.8467, lng: 80.9462, radius: 25 },
+  Chandigarh: { lat: 30.7333, lng: 76.7794, radius: 20 },
 }
 
 // Calculate distance between two points using Haversine formula
