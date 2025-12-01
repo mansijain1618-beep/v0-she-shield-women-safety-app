@@ -58,7 +58,7 @@ export default function DashboardPage() {
   const chartColors = ["#b19cd9", "#db7093", "#9370db", "#da70d6", "#c8a2d0"]
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: "var(--color-background)" }}>
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-20 right-1/3 w-96 h-96 bg-primary/8 rounded-full blur-3xl animate-float"></div>
         <div
@@ -78,7 +78,10 @@ export default function DashboardPage() {
 
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="bg-card rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up">
+            <div
+              className="rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
+              style={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)" }}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-muted-foreground text-sm font-medium">Total Reports</p>
@@ -89,8 +92,12 @@ export default function DashboardPage() {
             </div>
 
             <div
-              className="bg-card rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
-              style={{ animationDelay: "0.1s" }}
+              className="rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
+              style={{
+                animationDelay: "0.1s",
+                backgroundColor: "var(--color-card)",
+                color: "var(--color-card-foreground)",
+              }}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -102,8 +109,12 @@ export default function DashboardPage() {
             </div>
 
             <div
-              className="bg-card rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
-              style={{ animationDelay: "0.2s" }}
+              className="rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
+              style={{
+                animationDelay: "0.2s",
+                backgroundColor: "var(--color-card)",
+                color: "var(--color-card-foreground)",
+              }}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -115,8 +126,12 @@ export default function DashboardPage() {
             </div>
 
             <div
-              className="bg-card rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
-              style={{ animationDelay: "0.3s" }}
+              className="rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
+              style={{
+                animationDelay: "0.3s",
+                backgroundColor: "var(--color-card)",
+                color: "var(--color-card-foreground)",
+              }}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -128,8 +143,12 @@ export default function DashboardPage() {
             </div>
 
             <div
-              className="bg-card rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
-              style={{ animationDelay: "0.4s" }}
+              className="rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
+              style={{
+                animationDelay: "0.4s",
+                backgroundColor: "var(--color-card)",
+                color: "var(--color-card-foreground)",
+              }}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -142,8 +161,12 @@ export default function DashboardPage() {
             </div>
 
             <div
-              className="bg-card rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
-              style={{ animationDelay: "0.5s" }}
+              className="rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
+              style={{
+                animationDelay: "0.5s",
+                backgroundColor: "var(--color-card)",
+                color: "var(--color-card-foreground)",
+              }}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -156,8 +179,12 @@ export default function DashboardPage() {
             </div>
 
             <div
-              className="bg-card rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
-              style={{ animationDelay: "0.6s" }}
+              className="rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
+              style={{
+                animationDelay: "0.6s",
+                backgroundColor: "var(--color-card)",
+                color: "var(--color-card-foreground)",
+              }}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -170,8 +197,12 @@ export default function DashboardPage() {
             </div>
 
             <div
-              className="bg-card rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
-              style={{ animationDelay: "0.7s" }}
+              className="rounded-2xl p-6 shadow-md border-2 border-primary/30 hover:border-primary/60 transition animate-slide-up"
+              style={{
+                animationDelay: "0.7s",
+                backgroundColor: "var(--color-card)",
+                color: "var(--color-card-foreground)",
+              }}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -186,7 +217,10 @@ export default function DashboardPage() {
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <div className="bg-card rounded-2xl p-6 shadow-md border-2 border-primary/30 animate-slide-up">
+            <div
+              className="rounded-2xl p-6 shadow-md border-2 border-primary/30 animate-slide-up"
+              style={{ backgroundColor: "var(--color-card)" }}
+            >
               <h2 className="text-2xl font-bold text-foreground mb-4">Monthly Incidents Across India</h2>
               {statsData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
@@ -211,8 +245,8 @@ export default function DashboardPage() {
             </div>
 
             <div
-              className="bg-card rounded-2xl p-6 shadow-md border-2 border-primary/30 animate-slide-up"
-              style={{ animationDelay: "0.2s" }}
+              className="rounded-2xl p-6 shadow-md border-2 border-primary/30 animate-slide-up"
+              style={{ animationDelay: "0.2s", backgroundColor: "var(--color-card)" }}
             >
               <h2 className="text-2xl font-bold text-foreground mb-4">Crime Distribution</h2>
               {riskDistribution.length > 0 ? (
@@ -250,7 +284,10 @@ export default function DashboardPage() {
           </div>
 
           {/* Top Cities */}
-          <div className="bg-card rounded-2xl p-6 shadow-md border-2 border-primary/30 animate-slide-up">
+          <div
+            className="rounded-2xl p-6 shadow-md border-2 border-primary/30 animate-slide-up"
+            style={{ backgroundColor: "var(--color-card)" }}
+          >
             <h2 className="text-2xl font-bold text-foreground mb-4">Coverage Across India Cities</h2>
             <div className="space-y-3">
               {[
