@@ -37,7 +37,6 @@ interface Waypoint {
 }
 
 export default function SafeRoutePage() {
-  // (all your same hooks and logic retained)
   const [routes, setRoutes] = useState<Route[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedRoute, setSelectedRoute] = useState<"shortest" | "safest">("safest")
@@ -54,7 +53,6 @@ export default function SafeRoutePage() {
   const [isNavigating, setIsNavigating] = useState(false)
   const [navigationStep, setNavigationStep] = useState(0)
 
-  // geolocation detection - kept same
   useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -88,7 +86,6 @@ export default function SafeRoutePage() {
     setSelectedWaypoints([])
   }, [city])
 
-  // indianCities object kept as-is
   const indianCities: Record<string, { lat: number; lng: number }> = {
     Delhi: { lat: 28.6139, lng: 77.209 },
     Mumbai: { lat: 19.076, lng: 72.8776 },
@@ -147,6 +144,7 @@ export default function SafeRoutePage() {
   const handleStartNavigation = () => {
     setIsNavigating(true)
     setNavigationStep(0)
+    // Simulate navigation progress
     const interval = setInterval(() => {
       setNavigationStep((prev) => {
         if (prev >= 100) {
@@ -155,7 +153,7 @@ export default function SafeRoutePage() {
           alert("Navigation Complete! You have reached your destination safely.")
           return 100
         }
-        return Math.min(100, prev + Math.random() * 15)
+        return prev + Math.random() * 15
       })
     }, 3000)
   }
@@ -171,11 +169,11 @@ export default function SafeRoutePage() {
   const getRiskColor = (level: string) => {
     switch (level) {
       case "low":
-        return "bg-green-50 border-green-200 text-green-700"
+        return "bg-green-100 border-green-300 text-green-700"
       case "medium":
-        return "bg-yellow-50 border-yellow-200 text-yellow-700"
+        return "bg-yellow-100 border-yellow-300 text-yellow-700"
       case "high":
-        return "bg-red-50 border-red-200 text-red-700"
+        return "bg-red-100 border-red-300 text-red-700"
       default:
         return ""
     }
@@ -189,23 +187,13 @@ export default function SafeRoutePage() {
   const selectedRouteData = routes.find((r) => r.type === selectedRoute)
 
   return (
-    <div className="min-h-screen bg-[#F8F5FF] dark:bg-[#0C0017] relative overflow-hidden">
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-[#7C3AED]/8 rounded-full blur-3xl animate-float"></div>
-        <div
-          className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#4F46E5]/8 rounded-full blur-3xl animate-float"
-          style={{ animationDelay: "1.5s" }}
-        ></div>
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-white to-pink-50">
       <Navbar />
 
-      <div className="pt-12 pb-12 px-4 md:px-8 relative z-10">
+      <div className="pt-12 pb-12 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8 animate-slide-down">
-            <h1 className="text-4xl font-bold text-[#7C3AED] mb-2">Safe Route Recommendation</h1>
-            <p className="text-gray-600 dark:text-gray-300">Navigate safely within cities with helpful waypoints and guidance</p>
-          </div>
+          <h1 className="text-4xl font-bold text-primary mb-2">Safe Route Recommendation</h1>
+          <p className="text-gray-600 mb-8">Navigate safely within cities with real locations and waypoints</p>
 
           {locationError && (
             <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6 text-yellow-800">
@@ -214,15 +202,15 @@ export default function SafeRoutePage() {
           )}
 
           {/* Filters */}
-          <div className="bg-white dark:bg-[rgba(255,255,255,0.03)] rounded-2xl p-6 mb-8 border border-[#6D28D9]/30" style={{ boxShadow: "0 0 15px rgba(79,70,229,0.18)" }}>
+          <div className="bg-white rounded-2xl p-6 shadow-md mb-8 border-2 border-pink-100">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Current Location</label>
+                <label className="block text-sm font-semibold text-foreground mb-2">Current Location</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     placeholder="Your location"
-                    className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:border-[#7C3AED] bg-white text-sm"
+                    className="flex-1 px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white text-sm"
                     value={startLocation ? `${startLocation.lat.toFixed(4)}, ${startLocation.lng.toFixed(4)}` : ""}
                     readOnly
                   />
@@ -243,7 +231,7 @@ export default function SafeRoutePage() {
                         )
                       }
                     }}
-                    className="px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-opacity-95 transition flex items-center gap-2"
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition flex items-center gap-2"
                   >
                     <Navigation className="w-4 h-4" />
                   </button>
@@ -251,11 +239,11 @@ export default function SafeRoutePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Select City</label>
+                <label className="block text-sm font-semibold text-foreground mb-2">Select City</label>
                 <select
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#7C3AED] bg-white"
+                  className="w-full px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white"
                 >
                   {Object.keys(indianCities).map((c) => (
                     <option key={c} value={c}>
@@ -266,11 +254,11 @@ export default function SafeRoutePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Time of Day</label>
+                <label className="block text-sm font-semibold text-foreground mb-2">Time of Day</label>
                 <select
                   value={timeOfDay}
                   onChange={(e) => setTimeOfDay(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#7C3AED] bg-white"
+                  className="w-full px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white"
                 >
                   <option>Day (6 AM - 6 PM)</option>
                   <option>Evening (6 PM - 10 PM)</option>
@@ -279,11 +267,11 @@ export default function SafeRoutePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Filter By Type</label>
+                <label className="block text-sm font-semibold text-foreground mb-2">Filter By Type</label>
                 <select
                   value={filterByType}
                   onChange={(e) => setFilterByType(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#7C3AED] bg-white"
+                  className="w-full px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white"
                 >
                   <option value="all">All Places</option>
                   <option value="landmark">Landmarks</option>
@@ -297,22 +285,22 @@ export default function SafeRoutePage() {
 
             {/* Destination Selection */}
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Select Destination in {city}</label>
+              <label className="block text-sm font-semibold text-foreground mb-3">Select Destination in {city}</label>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pb-4">
                 {filteredDestinations.map((dest) => (
                   <button
                     key={dest.name}
                     onClick={() => setSelectedDestination(dest.name)}
-                    className={`px-4 py-3 rounded-lg border text-left transition flex items-center gap-2 ${
+                    className={`px-4 py-3 rounded-lg border-2 text-left transition flex items-center gap-2 ${
                       selectedDestination === dest.name
-                        ? "border-[#7C3AED] bg-[#F7EEFF]"
-                        : "border-[#F0E9FF] bg-white hover:border-[#7C3AED]"
+                        ? "border-primary bg-pink-50"
+                        : "border-pink-100 bg-white hover:border-primary"
                     }`}
                   >
-                    <MapPin className="w-4 h-4 flex-shrink-0 text-[#7C3AED]" />
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
                     <div>
-                      <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{dest.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-300">{dest.category}</p>
+                      <p className="font-semibold text-sm">{dest.name}</p>
+                      <p className="text-xs text-gray-500">{dest.category}</p>
                     </div>
                   </button>
                 ))}
@@ -322,7 +310,7 @@ export default function SafeRoutePage() {
             {/* Optional Waypoints */}
             {selectedDestination && (
               <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                <label className="block text-sm font-semibold text-foreground mb-3">
                   Select Safe Waypoints (Optional)
                 </label>
                 <p className="text-xs text-gray-500 mb-3">
@@ -341,15 +329,15 @@ export default function SafeRoutePage() {
                             setSelectedWaypoints([...selectedWaypoints, dest])
                           }
                         }}
-                        className={`px-3 py-2 rounded-lg border text-left text-sm transition flex items-center gap-2 ${
+                        className={`px-3 py-2 rounded-lg border-2 text-left text-sm transition flex items-center gap-2 ${
                           selectedWaypoints.find((w) => w.name === dest.name)
-                            ? "border-[#7C3AED] bg-[#F7EEFF]"
-                            : "border-[#F0E9FF] bg-white hover:border-[#7C3AED]"
+                            ? "border-primary bg-pink-50"
+                            : "border-pink-100 bg-white hover:border-primary"
                         }`}
                       >
-                        <MapPinned className="w-3 h-3 text-[#7C3AED]" />
+                        <MapPinned className="w-3 h-3" />
                         <div>
-                          <p className="font-semibold text-xs text-gray-900 dark:text-gray-100">{dest.name}</p>
+                          <p className="font-semibold text-xs">{dest.name}</p>
                         </div>
                       </button>
                     ))}
@@ -360,52 +348,98 @@ export default function SafeRoutePage() {
             <button
               onClick={handleCalculateRoute}
               disabled={loading || !selectedDestination}
-              className="w-full bg-[#7C3AED] text-white py-3 rounded-lg hover:bg-opacity-95 transition font-semibold disabled:opacity-60 flex items-center justify-center gap-2"
+              className="w-full bg-primary text-white py-3 rounded-lg hover:bg-opacity-90 transition font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
               {loading ? "Calculating..." : "Calculate Safe Route"}
             </button>
           </div>
 
-          {/* Illustration + Map */}
-          <div className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-            <div className="bg-white dark:bg-[rgba(255,255,255,0.03)] rounded-2xl p-6 border border-[#6D28D9]/30" style={{ boxShadow: "0 0 15px rgba(79,70,229,0.12)" }}>
-              <img src="/illustrations/safe-route-illustration.png" alt="route" className="w-full h-auto rounded-lg" />
+          {/* Map Display */}
+          {mapReady && startLocation && endLocation && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-4">Interactive Route Map</h2>
+              <EnhancedMapView
+                startLat={startLocation.lat}
+                startLng={startLocation.lng}
+                endLat={endLocation.lat}
+                endLng={endLocation.lng}
+                waypoints={selectedWaypoints}
+                routeCoordinates={routes[0]?.coordinates}
+              />
             </div>
+          )}
 
-            {mapReady && startLocation && endLocation && (
-              <div className="rounded-2xl overflow-hidden">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Interactive Route Map</h2>
-                <EnhancedMapView
-                  startLat={startLocation.lat}
-                  startLng={startLocation.lng}
-                  endLat={endLocation.lat}
-                  endLng={endLocation.lng}
-                  waypoints={selectedWaypoints}
-                  routeCoordinates={routes[0]?.coordinates}
-                />
+          {/* Navigation Progress */}
+          {isNavigating && selectedRouteData && (
+            <div className="bg-white rounded-2xl p-6 shadow-md mb-8 border-2 border-pink-100">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-foreground">Live Navigation</h3>
+                <button
+                  onClick={handleStopNavigation}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2"
+                >
+                  <Square className="w-4 h-4" />
+                  Stop Navigation
+                </button>
               </div>
-            )}
+              <div className="mb-4">
+                <div className="flex items-center gap-4 mb-3">
+                  <Navigation className="w-6 h-6 text-primary animate-spin" />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600">Following {selectedRoute} route...</p>
+                    <p className="font-semibold text-foreground">
+                      Distance remaining:{" "}
+                      {(((100 - navigationStep) * Number.parseFloat(selectedRouteData.distance)) / 100).toFixed(1)} km
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-primary h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${navigationStep}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">{Math.round(navigationStep)}% completed</p>
+              </div>
+            </div>
+          )}
+
+          {/* Weather & Traffic Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div className="bg-white rounded-2xl p-6 shadow-md border-2 border-pink-100">
+              <div className="flex items-center gap-3 mb-2">
+                <Cloud className="w-6 h-6 text-blue-500" />
+                <h3 className="font-semibold text-foreground">Weather</h3>
+              </div>
+              <p className="text-gray-600">Partly Cloudy • 28°C • Light winds</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 shadow-md border-2 border-pink-100">
+              <div className="flex items-center gap-3 mb-2">
+                <MapPin className="w-6 h-6 text-primary" />
+                <h3 className="font-semibold text-foreground">Traffic</h3>
+              </div>
+              <p className="text-gray-600">Moderate traffic • ~5 min delays</p>
+            </div>
           </div>
 
-          {/* Routes Display (kept similar) */}
+          {/* Routes Display */}
           {routes.length > 0 ? (
             <div className="space-y-6">
               {routes.map((route) => (
                 <div
                   key={route.type}
                   onClick={() => setSelectedRoute(route.type)}
-                  className={`bg-white dark:bg-[rgba(255,255,255,0.03)] rounded-2xl p-6 shadow-md cursor-pointer transition-all border ${
+                  className={`bg-white rounded-2xl p-6 shadow-md cursor-pointer transition-all border-2 ${
                     selectedRoute === route.type
-                      ? "border-[#7C3AED] shadow-lg scale-105"
-                      : "border-[#F0E9FF] hover:border-[#7C3AED]"
+                      ? "border-primary shadow-lg scale-105"
+                      : "border-pink-100 hover:border-primary"
                   }`}
-                  style={{ boxShadow: selectedRoute === route.type ? "0 8px 30px rgba(79,70,229,0.18)" : "0 4px 12px rgba(0,0,0,0.04)" }}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 capitalize mb-2">{route.type} Route</h3>
-                      <p className="text-gray-600 dark:text-gray-300">{route.description}</p>
+                      <h3 className="text-2xl font-bold text-foreground capitalize mb-2">{route.type} Route</h3>
+                      <p className="text-gray-600">{route.description}</p>
                     </div>
                     <span
                       className={`px-4 py-2 rounded-full font-semibold flex items-center gap-2 border-2 ${getRiskColor(
@@ -417,24 +451,24 @@ export default function SafeRoutePage() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 pb-4 border-b-2 border-[#F0E9FF]">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 pb-4 border-b-2 border-pink-100">
                     <div>
                       <p className="text-sm text-gray-500 mb-1">Distance</p>
-                      <p className="text-xl font-bold text-[#7C3AED]">{route.distance}</p>
+                      <p className="text-xl font-bold text-primary">{route.distance}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 mb-1">Duration</p>
-                      <p className="text-xl font-bold text-[#7C3AED] flex items-center gap-2">
+                      <p className="text-xl font-bold text-primary flex items-center gap-2">
                         <Clock className="w-5 h-5" /> {route.duration}
                       </p>
                     </div>
                   </div>
 
                   <div className="mb-4">
-                    <p className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Waypoints:</p>
+                    <p className="font-semibold text-foreground mb-3">Waypoints:</p>
                     <div className="flex flex-wrap gap-2">
                       {route.waypoints.map((point, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-[#F7EEFF] text-[#7C3AED] rounded-full text-sm font-medium">
+                        <span key={idx} className="px-3 py-1 bg-pink-100 text-primary rounded-full text-sm font-medium">
                           {point}
                         </span>
                       ))}
@@ -458,7 +492,7 @@ export default function SafeRoutePage() {
                   {selectedRoute === route.type && !isNavigating && (
                     <button
                       onClick={handleStartNavigation}
-                      className="w-full bg-[#4F46E5] text-white py-3 rounded-xl font-bold hover:bg-opacity-95 transition flex items-center justify-center gap-2"
+                      className="w-full bg-primary text-white py-3 rounded-xl font-bold hover:bg-opacity-90 transition flex items-center justify-center gap-2"
                     >
                       <Play className="w-5 h-5" />
                       Start Navigation
@@ -469,8 +503,8 @@ export default function SafeRoutePage() {
             </div>
           ) : (
             !loading && (
-              <div className="text-center py-12 bg-white rounded-2xl border border-[#F0E9FF]">
-                <MapPin className="w-12 h-12 text-[#D6BCFA] mx-auto mb-4" />
+              <div className="text-center py-12 bg-white rounded-2xl border-2 border-pink-100">
+                <MapPin className="w-12 h-12 text-pink-300 mx-auto mb-4" />
                 <p className="text-gray-600 text-lg">Calculate a route to get started with safe navigation</p>
               </div>
             )
