@@ -1,4 +1,3 @@
-// Utility to detect user's city based on coordinates with high accuracy
 export async function detectCityFromCoordinates(lat: number, lng: number): Promise<string> {
   try {
     // Use OpenStreetMap Nominatim API for reverse geocoding
@@ -15,7 +14,10 @@ export async function detectCityFromCoordinates(lat: number, lng: number): Promi
 }
 
 // List of major Indian cities with their coordinates for matching
-export const indianCitiesCoordinates: Record<string, { lat: number; lng: number; radius: number }> = {
+export const indianCitiesCoordinates: Record<
+  string,
+  { lat: number; lng: number; radius: number; police?: string; phone?: string }
+> = {
   Delhi: { lat: 28.7041, lng: 77.1025, radius: 40 },
   Mumbai: { lat: 19.0759, lng: 72.8776, radius: 35 },
   Bangalore: { lat: 12.9716, lng: 77.5946, radius: 30 },
@@ -23,7 +25,13 @@ export const indianCitiesCoordinates: Record<string, { lat: number; lng: number;
   Pune: { lat: 18.5204, lng: 73.8567, radius: 25 },
   Hyderabad: { lat: 17.385, lng: 78.4867, radius: 30 },
   Chennai: { lat: 13.0827, lng: 80.2707, radius: 30 },
-  Bhopal: { lat: 23.1815, lng: 75.8577, radius: 30 }, // Corrected from incorrect coordinates
+  Bhopal: {
+    lat: 23.1815,
+    lng: 75.8577,
+    radius: 30,
+    police: "Bhopal Central Police Station",
+    phone: "0755-2760000",
+  },
   Gurgaon: { lat: 28.4595, lng: 77.0266, radius: 20 },
   Indore: { lat: 22.7196, lng: 75.8577, radius: 25 },
   Ahmedabad: { lat: 23.0225, lng: 72.5714, radius: 25 },
@@ -58,4 +66,13 @@ export function findNearestCity(lat: number, lng: number): string {
   }
 
   return minDistance < 50 ? nearestCity : "Unknown"
+}
+
+// Get police station details for a city
+export function getPoliceStationDetails(city: string): { police?: string; phone?: string } {
+  const cityData = indianCitiesCoordinates[city]
+  return {
+    police: cityData?.police,
+    phone: cityData?.phone,
+  }
 }

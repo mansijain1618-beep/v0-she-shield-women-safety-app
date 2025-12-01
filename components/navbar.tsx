@@ -5,36 +5,46 @@ import { Shield } from "lucide-react"
 
 export default function Navbar() {
   return (
-    <nav className="sticky top-0 z-50 bg-white shadow-md border-b-2 border-pink-100">
-      <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-bold text-2xl text-primary hover:opacity-80 transition">
-          <Shield className="w-8 h-8" />
-          <span>SheShield</span>
+    <nav className="sticky top-0 z-50 bg-gradient-to-r from-background via-card to-background backdrop-blur-xl border-b-2 border-primary/30 shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
+        {/* Logo */}
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-bold text-2xl hover:opacity-80 transition-all duration-300 group"
+        >
+          <div className="p-2 bg-gradient-to-br from-primary to-secondary rounded-lg group-hover:shadow-lg group-hover:shadow-primary/50 transition-all">
+            <Shield className="w-7 h-7 text-white" />
+          </div>
+          <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent font-extrabold">
+            SheShield
+          </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
-          <Link href="/" className="text-foreground hover:text-primary transition font-medium">
-            Home
-          </Link>
-          <Link href="/safe-route" className="text-foreground hover:text-primary transition font-medium">
-            Safe Routes
-          </Link>
-          <Link href="/check-in" className="text-foreground hover:text-primary transition font-medium">
-            Check-In
-          </Link>
-          <Link href="/chatbot" className="text-foreground hover:text-primary transition font-medium">
-            Chatbot
-          </Link>
-          <Link href="/community-alerts" className="text-foreground hover:text-primary transition font-medium">
-            Alerts
-          </Link>
-          <Link href="/dashboard" className="text-foreground hover:text-primary transition font-medium">
-            Dashboard
-          </Link>
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center gap-1">
+          {[
+            { href: "/", label: "🏠 Home" },
+            { href: "/safe-route", label: "🗺️ Safe Routes" },
+            { href: "/check-in", label: "✅ Check-In" },
+            { href: "/chatbot", label: "💬 Chatbot" },
+            { href: "/community-alerts", label: "🚨 Alerts" },
+            { href: "/dashboard", label: "📊 Dashboard" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="px-4 py-2 text-foreground font-semibold hover:bg-primary/20 hover:text-primary rounded-lg transition-all duration-300 transform hover:scale-105"
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
 
+        {/* Mobile Menu Button */}
         <div className="md:hidden">
-          <button className="text-primary font-bold">Menu</button>
+          <button className="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-lg font-bold hover:shadow-lg transition-all">
+            ☰ Menu
+          </button>
         </div>
       </div>
     </nav>

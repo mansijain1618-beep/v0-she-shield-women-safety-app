@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { AlertTriangle } from "lucide-react"
-import { findNearestCity } from "@/lib/geolocation-utils"
+import { findNearestCity, getPoliceStationDetails } from "@/lib/geolocation-utils"
 
 interface SOSButtonProps {
   onLocationDetected?: (location: { lat: number; lon: number }) => void
@@ -15,6 +15,7 @@ export default function SOSButton({ onLocationDetected, onAlertSent }: SOSButton
   const [recording, setRecording] = useState(false)
   const [alertStatus, setAlertStatus] = useState("")
   const [detectedCity, setDetectedCity] = useState("")
+  const [policeDetails, setPoliceDetails] = useState<{ police?: string; phone?: string }>({})
   const countdownRef = useRef<NodeJS.Timeout>()
 
   const handleSOSClick = async () => {
@@ -30,10 +31,16 @@ export default function SOSButton({ onLocationDetected, onAlertSent }: SOSButton
           onLocationDetected?.({ lat: latitude, lon: longitude })
 
           const city = findNearestCity(latitude, longitude)
+          const details = getPoliceStationDetails(city)
+
           setDetectedCity(city)
+          setPoliceDetails(details)
           setAlertStatus(`📍 Location detected: ${city}`)
 
-          console.log(`[v0] Detected city: ${city} Coordinates: ${latitude}, ${longitude}`)
+          console.log(`[v0] Detected city: ${city} at coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`)
+          if (details.police) {
+            console.log(`[v0] Police Station: ${details.police}, Phone: ${details.phone}`)
+          }
 
           try {
             const response = await fetch("/api/emergency-alert", {
@@ -46,6 +53,7 @@ export default function SOSButton({ onLocationDetected, onAlertSent }: SOSButton
                 city,
                 userPhone: "+91-XXXXXXXXXX",
                 message: "Women in distress - Emergency Alert",
+                policeStation: details.police,
               }),
             })
             const result = await response.json()
@@ -88,6 +96,7 @@ export default function SOSButton({ onLocationDetected, onAlertSent }: SOSButton
     setCountdown(10)
     setAlertStatus("")
     setDetectedCity("")
+    setPoliceDetails({})
   }
 
   useEffect(() => {
@@ -127,10 +136,20 @@ export default function SOSButton({ onLocationDetected, onAlertSent }: SOSButton
         </button>
 
         {isActive && (
-          <div className="text-center animate-slide-up">
+          <div className="text-center animate-slide-up bg-card/50 backdrop-blur-sm rounded-3xl p-8 border-2 border-primary/30">
             <p className="text-destructive font-bold text-lg mb-3">🚨 Alert Active</p>
             <p className="text-5xl font-bold text-destructive mb-4 animate-pulse">{countdown}</p>
-            {detectedCity && <p className="text-primary font-semibold mb-2">Location: {detectedCity}</p>}
+            {detectedCity && (
+              <>
+                <p className="text-primary font-semibold mb-2">📍 Location: {detectedCity}</p>
+                {policeDetails.police && (
+                  <div className="bg-primary/10 rounded-lg p-3 mb-4">
+                    <p className="text-secondary font-semibold">🚔 {policeDetails.police}</p>
+                    <p className="text-muted-foreground text-sm">📞 {policeDetails.phone}</p>
+                  </div>
+                )}
+              </>
+            )}
             <p className="text-foreground/70 mb-2 text-sm font-semibold">{alertStatus}</p>
             <p className="text-foreground/70 mb-4 text-sm">
               {recording ? "🎙️ Recording & sending alert..." : "⏳ Processing..."}

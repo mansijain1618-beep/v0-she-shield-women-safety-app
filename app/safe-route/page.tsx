@@ -16,6 +16,7 @@ interface Route {
   waypoints: string[]
   coordinates?: Array<[number, number]>
   safetyRecommendations?: string[]
+  riskScore?: number
 }
 
 interface Waypoint {
@@ -158,11 +159,11 @@ export default function SafeRoutePage() {
   const getRiskColor = (level: string) => {
     switch (level) {
       case "low":
-        return "bg-green-100 border-green-300 text-green-700"
+        return "bg-green-500/15 border-green-400/50 text-green-300"
       case "medium":
-        return "bg-yellow-100 border-yellow-300 text-yellow-700"
+        return "bg-yellow-500/15 border-yellow-400/50 text-yellow-300"
       case "high":
-        return "bg-red-100 border-red-300 text-red-700"
+        return "bg-red-500/15 border-red-400/50 text-red-300"
       default:
         return ""
     }
@@ -173,49 +174,57 @@ export default function SafeRoutePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-background relative">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-10 w-80 h-80 bg-gradient-to-br from-secondary/15 to-accent/10 rounded-full blur-3xl animate-blob-1"></div>
-        <div className="absolute bottom-10 left-20 w-96 h-96 bg-gradient-to-tl from-primary/15 to-secondary/10 rounded-full blur-3xl animate-blob-2"></div>
+        <div className="absolute top-20 right-10 w-80 h-80 bg-gradient-to-br from-secondary/20 to-accent/15 rounded-full blur-3xl animate-blob-1"></div>
+        <div className="absolute bottom-10 left-20 w-96 h-96 bg-gradient-to-tl from-primary/20 to-secondary/15 rounded-full blur-3xl animate-blob-2"></div>
+        <div
+          className="absolute top-1/2 right-1/3 w-72 h-72 bg-gradient-to-br from-primary/15 to-accent/10 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "1.5s" }}
+        ></div>
       </div>
 
       <Navbar />
 
-      <div className="pt-12 pb-12 px-4 md:px-8 relative z-10">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2 animate-slide-up">
-            Safe Route Recommendations
-          </h1>
-          <p className="text-foreground/70 mb-8 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-            AI-powered routes based on real-time crime data, traffic, and safety scores
-          </p>
+      <div className="pt-16 pb-12 px-4 md:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 animate-slide-up">
+            <div className="inline-block px-6 py-2 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full border border-primary/30 backdrop-blur-sm mb-4">
+              <p className="text-sm font-semibold text-primary">Navigate Safely</p>
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-3">
+              Safe Route Recommendations
+            </h1>
+            <p className="text-lg text-foreground/70 max-w-3xl">
+              AI-powered routes based on real-time crime data, well-lit roads, police presence, and crowd density
+            </p>
+          </div>
 
           {locationError && (
             <div
-              className="bg-accent/10 border-2 border-accent rounded-2xl p-4 mb-6 animate-slide-up"
-              style={{ animationDelay: "0.2s" }}
+              className="bg-accent/15 border-2 border-accent/50 rounded-2xl p-4 mb-6 animate-slide-up backdrop-blur-sm"
+              style={{ animationDelay: "0.1s" }}
             >
-              <p className="text-accent text-sm">{locationError}</p>
+              <p className="text-accent text-sm font-medium">{locationError}</p>
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Route Selection Panel */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-12">
             <div
-              className="lg:col-span-1 bg-card/80 backdrop-blur-sm rounded-3xl p-6 shadow-xl border-2 border-primary/20 h-fit animate-slide-in-left"
-              style={{ animationDelay: "0.3s" }}
+              className="lg:col-span-1 bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-xl rounded-3xl p-6 shadow-xl border-2 border-primary/20 h-fit animate-slide-in-left hover:border-primary/40 transition-all"
+              style={{ animationDelay: "0.2s" }}
             >
-              <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                Route Options
+              <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-6 flex items-center gap-2">
+                <MapPin className="w-6 h-6 text-primary" />
+                Route Settings
               </h2>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {/* Time of Day Selection */}
-                <div>
-                  <label className="block text-sm font-semibold text-foreground mb-2">Time of Day</label>
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-foreground">Time of Day</label>
                   <select
                     value={timeOfDay}
                     onChange={(e) => setTimeOfDay(e.target.value)}
-                    className="w-full px-4 py-2 border-2 border-primary/20 rounded-xl bg-background text-foreground focus:outline-none focus:border-primary transition"
+                    className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl bg-background/50 text-foreground focus:outline-none focus:border-primary/60 transition-all backdrop-blur-sm"
                   >
                     <option>Day (6 AM - 6 PM)</option>
                     <option>Evening (6 PM - 9 PM)</option>
@@ -224,100 +233,186 @@ export default function SafeRoutePage() {
                 </div>
 
                 {/* Route Type Selection */}
-                <div>
-                  <label className="block text-sm font-semibold text-foreground mb-3">Route Type</label>
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-foreground">Preferred Route</label>
                   <div className="space-y-2">
                     {[
-                      { type: "safest" as const, label: "Safest Route", icon: CheckCircle },
-                      { type: "shortest" as const, label: "Shortest Route", icon: Navigation },
+                      {
+                        type: "safest" as const,
+                        label: "Safest Route",
+                        icon: CheckCircle,
+                        desc: "Avoid high-crime areas",
+                      },
+                      { type: "shortest" as const, label: "Shortest Route", icon: Navigation, desc: "Direct path" },
                     ].map((option) => (
                       <button
                         key={option.type}
                         onClick={() => setSelectedRoute(option.type)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all border-2 ${
+                        className={`w-full flex items-start gap-3 px-4 py-3 rounded-xl font-semibold transition-all border-2 ${
                           selectedRoute === option.type
-                            ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground border-primary shadow-lg"
-                            : "bg-background text-foreground border-primary/20 hover:border-primary/50"
+                            ? "bg-gradient-to-r from-primary/30 to-secondary/20 text-primary border-primary/60 shadow-lg"
+                            : "bg-background/30 text-foreground border-primary/20 hover:border-primary/40 hover:bg-background/50"
                         }`}
                       >
-                        <option.icon className="w-5 h-5" />
-                        {option.label}
+                        <option.icon className="w-5 h-5 flex-shrink-0 mt-1" />
+                        <div className="text-left">
+                          <p className="text-sm">{option.label}</p>
+                          <p className="text-xs text-foreground/60">{option.desc}</p>
+                        </div>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Current Location Display */}
+                {/* Current Location Display with enhanced styling */}
                 {startLocation && (
-                  <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl p-4 border-2 border-primary/20">
-                    <p className="text-xs text-foreground/70 mb-1">Current Location</p>
-                    <p className="font-semibold text-foreground">{city}</p>
-                    <p className="text-xs text-foreground/60 mt-1">
-                      📍 {startLocation.lat.toFixed(4)}, {startLocation.lng.toFixed(4)}
+                  <div className="bg-gradient-to-br from-primary/20 to-secondary/10 rounded-2xl p-4 border-2 border-primary/30">
+                    <p className="text-xs text-foreground/70 font-semibold uppercase tracking-wider mb-2">
+                      Your Location
+                    </p>
+                    <p className="font-bold text-lg text-foreground mb-1">{city}</p>
+                    <p className="text-xs text-foreground/60 font-mono">
+                      {startLocation.lat.toFixed(4)}, {startLocation.lng.toFixed(4)}
                     </p>
                   </div>
                 )}
+
+                {/* Calculate Route Button */}
+                <button
+                  onClick={handleCalculateRoute}
+                  disabled={loading || !startLocation || !selectedDestination}
+                  className={`w-full py-3 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 ${
+                    loading || !startLocation || !selectedDestination
+                      ? "bg-muted/50 text-foreground/50 cursor-not-allowed"
+                      : "bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:scale-105 active:scale-95"
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Calculating...
+                    </>
+                  ) : (
+                    <>
+                      <Navigation className="w-5 h-5" />
+                      Calculate Route
+                    </>
+                  )}
+                </button>
               </div>
             </div>
 
-            {/* Map & Route Display */}
-            <div
-              className="lg:col-span-2 bg-card/80 backdrop-blur-sm rounded-3xl shadow-xl border-2 border-primary/20 overflow-hidden animate-slide-in-right"
-              style={{ animationDelay: "0.4s" }}
-            >
-              {startLocation && mapReady ? (
-                <EnhancedMapView
-                  startCoordinates={startLocation}
-                  destinations={availableDestinations}
-                  selectedWaypoints={selectedWaypoints}
-                />
-              ) : (
-                <div className="h-96 flex items-center justify-center bg-muted">
-                  <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-primary animate-rotate-slow mx-auto mb-3" />
-                    <p className="text-foreground/70">Loading map...</p>
+            <div className="lg:col-span-3 space-y-6">
+              {/* Map Display */}
+              <div
+                className="bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-xl rounded-3xl shadow-xl border-2 border-primary/20 overflow-hidden animate-slide-in-right hover:border-primary/40 transition-all"
+                style={{ animationDelay: "0.3s" }}
+              >
+                {startLocation && mapReady ? (
+                  <EnhancedMapView
+                    startCoordinates={startLocation}
+                    destinations={availableDestinations}
+                    selectedWaypoints={selectedWaypoints}
+                  />
+                ) : (
+                  <div className="h-96 flex flex-col items-center justify-center bg-gradient-to-br from-muted/40 to-muted/20">
+                    <Loader2 className="w-12 h-12 text-primary animate-spin mb-3" />
+                    <p className="text-foreground/70 font-medium">Loading interactive map...</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Route Details Cards */}
+              {routes.length > 0 && (
+                <div className="animate-slide-up" style={{ animationDelay: "0.4s" }}>
+                  <h3 className="text-2xl font-bold text-foreground mb-4">Available Routes</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {routes.map((route, idx) => (
+                      <div
+                        key={idx}
+                        className={`bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-xl rounded-2xl p-6 border-2 transition-all duration-300 animate-slide-up hover:shadow-lg ${
+                          selectedRoute === route.type
+                            ? "border-primary/60 shadow-lg shadow-primary/20"
+                            : "border-primary/20 hover:border-primary/40"
+                        }`}
+                        style={{ animationDelay: `${0.1 + idx * 0.05}s` }}
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <h4 className="font-bold text-foreground text-lg capitalize">
+                            {route.type === "safest" ? "Safest Route" : "Shortest Route"}
+                          </h4>
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                              route.riskLevel === "low"
+                                ? "bg-green-500/20 border-green-400/50 text-green-300"
+                                : route.riskLevel === "medium"
+                                  ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-300"
+                                  : "bg-red-500/20 border-red-400/50 text-red-300"
+                            }`}
+                          >
+                            {route.riskLevel.toUpperCase()} RISK
+                          </span>
+                        </div>
+
+                        {/* Enhanced route details with safety score visualization */}
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-primary/10 rounded-lg p-3">
+                              <p className="text-xs text-foreground/70 mb-1">Distance</p>
+                              <p className="font-bold text-primary text-lg">{route.distance}</p>
+                            </div>
+                            <div className="bg-secondary/10 rounded-lg p-3">
+                              <p className="text-xs text-foreground/70 mb-1">Duration</p>
+                              <p className="font-bold text-secondary text-lg">{route.duration}</p>
+                            </div>
+                          </div>
+
+                          {/* Safety Score Bar */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs font-semibold text-foreground/70">Safety Score</p>
+                              <p className="text-sm font-bold text-primary">
+                                {(10 - (route as any).riskScore).toFixed(1)}/10
+                              </p>
+                            </div>
+                            <div className="w-full h-2 bg-muted/40 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-500 rounded-full ${
+                                  route.riskLevel === "low"
+                                    ? "bg-gradient-to-r from-green-500 to-emerald-400"
+                                    : route.riskLevel === "medium"
+                                      ? "bg-gradient-to-r from-yellow-500 to-amber-400"
+                                      : "bg-gradient-to-r from-red-500 to-orange-400"
+                                }`}
+                                style={{ width: `${((10 - (route as any).riskScore) / 10) * 100}%` }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          <p className="text-sm text-foreground/70 leading-relaxed">{route.description}</p>
+
+                          {/* Safety Recommendations */}
+                          {(route as any).safetyRecommendations && (route as any).safetyRecommendations.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-primary/20">
+                              <p className="text-xs font-semibold text-foreground/70 mb-2">Safety Tips</p>
+                              <ul className="space-y-1">
+                                {(route as any).safetyRecommendations.slice(0, 2).map((rec: string, i: number) => (
+                                  <li key={i} className="text-xs text-foreground/60 flex items-start gap-2">
+                                    <span className="text-primary mt-1">•</span>
+                                    <span>{rec}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
           </div>
-
-          {/* Routes List */}
-          {routes.length > 0 && (
-            <div className="mt-8 animate-slide-up" style={{ animationDelay: "0.5s" }}>
-              <h3 className="text-2xl font-bold text-primary mb-4">Available Routes</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {routes.map((route, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-card/80 backdrop-blur-sm rounded-2xl p-6 border-2 border-primary/20 hover:border-primary/50 transition-all hover:shadow-lg animate-slide-up"
-                    style={{ animationDelay: `${0.1 + idx * 0.05}s` }}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <h4 className="font-bold text-foreground text-lg capitalize">{route.type} Route</h4>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          route.riskLevel === "low"
-                            ? "bg-green-500/20 text-green-700"
-                            : route.riskLevel === "medium"
-                              ? "bg-yellow-500/20 text-yellow-700"
-                              : "bg-red-500/20 text-red-700"
-                        }`}
-                      >
-                        {route.riskLevel.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm text-foreground/70 flex items-center gap-2">
-                        <Navigation className="w-4 h-4" /> {route.distance} • {route.duration}
-                      </p>
-                      <p className="text-sm text-foreground">{route.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
