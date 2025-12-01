@@ -1,3 +1,4 @@
+// Utility to detect user's city based on coordinates with high accuracy
 export async function detectCityFromCoordinates(lat: number, lng: number): Promise<string> {
   try {
     // Use OpenStreetMap Nominatim API for reverse geocoding
@@ -15,16 +16,16 @@ export async function detectCityFromCoordinates(lat: number, lng: number): Promi
 
 // List of major Indian cities with their coordinates for matching
 export const indianCitiesCoordinates: Record<string, { lat: number; lng: number; radius: number }> = {
-  Delhi: { lat: 28.7041, lng: 77.1025, radius: 35 },
-  Mumbai: { lat: 19.0759, lng: 72.8776, radius: 30 },
-  Bangalore: { lat: 12.9716, lng: 77.5946, radius: 25 },
-  Kolkata: { lat: 22.5726, lng: 88.3639, radius: 25 },
-  Pune: { lat: 18.5204, lng: 73.8567, radius: 20 },
-  Hyderabad: { lat: 17.385, lng: 78.4867, radius: 25 },
-  Chennai: { lat: 13.0827, lng: 80.2707, radius: 25 },
-  Bhopal: { lat: 23.1815, lng: 77.4149, radius: 25 },
-  Gurgaon: { lat: 28.4595, lng: 77.0266, radius: 20 },
-  Indore: { lat: 22.7196, lng: 75.8577, radius: 20 },
+  Delhi: { lat: 28.7041, lng: 77.1025, radius: 30 },
+  Mumbai: { lat: 19.0759, lng: 72.8776, radius: 25 },
+  Bangalore: { lat: 12.9716, lng: 77.5946, radius: 20 },
+  Kolkata: { lat: 22.5726, lng: 88.3639, radius: 20 },
+  Pune: { lat: 18.5204, lng: 73.8567, radius: 15 },
+  Hyderabad: { lat: 17.385, lng: 78.4867, radius: 20 },
+  Chennai: { lat: 13.0827, lng: 80.2707, radius: 20 },
+  Bhopal: { lat: 23.1815, lng: 77.4149, radius: 15 },
+  Gurgaon: { lat: 28.4595, lng: 77.0266, radius: 15 },
+  Indore: { lat: 22.7196, lng: 75.8577, radius: 15 },
 }
 
 // Calculate distance between two points using Haversine formula
@@ -52,6 +53,5 @@ export function findNearestCity(lat: number, lng: number): string {
     }
   }
 
-  console.log("[v0] City detection - Nearest city:", nearestCity, "Distance:", minDistance.toFixed(2), "km")
   return minDistance < 50 ? nearestCity : "Unknown"
 }

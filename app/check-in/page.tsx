@@ -75,6 +75,7 @@ export default function CheckInPage() {
     if (savedLogs) setCheckInLogs(JSON.parse(savedLogs))
     if (savedContacts) setTrustedContacts(JSON.parse(savedContacts))
 
+    // Get initial location
     getLocationAndNearbyPolice()
   }, [])
 
@@ -88,6 +89,7 @@ export default function CheckInPage() {
           }
           setCoordinates(newCoords)
 
+          // Fetch nearby police stations
           if (selectedCity) {
             try {
               const response = await fetch("/api/nearby-police", {
@@ -138,6 +140,7 @@ export default function CheckInPage() {
     }
 
     try {
+      // Send alert to all trusted contacts
       const response = await fetch("/api/send-alert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -220,13 +223,14 @@ export default function CheckInPage() {
     if (!isTracking) {
       const interval = setInterval(() => {
         getLocationAndNearbyPolice()
-      }, 10000)
+      }, 10000) // Update every 10 seconds
       return () => clearInterval(interval)
     }
   }
 
   return (
-    <div className="min-h-screen relative" style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}>
+    <div className="min-h-screen relative">
+      {/* Background decorative elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 right-10 w-40 h-40 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full blur-3xl animate-float"></div>
         <div
@@ -242,18 +246,14 @@ export default function CheckInPage() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2 animate-slide-up">
             Check-In System
           </h1>
-          <p
-            style={{ color: "var(--foreground)" }}
-            className="opacity-70 mb-8 animate-slide-up"
-            style={{ animationDelay: "0.1s" }}
-          >
+          <p className="text-foreground/70 mb-8 animate-slide-up" style={{ animationDelay: "0.1s" }}>
             Stay connected with loved ones and nearby emergency services
           </p>
 
           {/* Trusted Contacts Section */}
           <div
-            className="backdrop-blur-sm rounded-3xl p-8 shadow-xl mb-8 border-2 border-primary/20 animate-slide-up hover:border-primary/40 transition"
-            style={{ animationDelay: "0.2s", backgroundColor: "var(--card)", color: "var(--card-foreground)" }}
+            className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl mb-8 border-2 border-primary/20 animate-slide-up hover:border-primary/40 transition"
+            style={{ animationDelay: "0.2s" }}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
@@ -272,33 +272,27 @@ export default function CheckInPage() {
             </div>
 
             {showContactForm && (
-              <div
-                className="rounded-2xl p-6 mb-6 border-2 border-primary/30 space-y-4 animate-slide-down"
-                style={{ backgroundColor: "var(--card)" }}
-              >
+              <div className="bg-card rounded-2xl p-6 mb-6 border-2 border-primary/30 space-y-4 animate-slide-down">
                 <input
                   type="text"
                   placeholder="Contact Name"
                   value={contactName}
                   onChange={(e) => setContactName(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
-                  style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
+                  className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 bg-background transition"
                 />
                 <input
                   type="tel"
                   placeholder="Phone Number (e.g., +91-9876543210)"
                   value={contactPhone}
                   onChange={(e) => setContactPhone(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
-                  style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
+                  className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 bg-background transition"
                 />
                 <input
                   type="email"
                   placeholder="Email Address"
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
-                  style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
+                  className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 bg-background transition"
                 />
                 <div className="flex gap-3">
                   <button
@@ -309,8 +303,7 @@ export default function CheckInPage() {
                   </button>
                   <button
                     onClick={() => setShowContactForm(false)}
-                    className="flex-1 py-3 rounded-xl font-bold hover:opacity-80 transition"
-                    style={{ backgroundColor: "var(--muted)", color: "var(--foreground)" }}
+                    className="flex-1 bg-muted text-foreground py-3 rounded-xl font-bold hover:bg-muted/80 transition"
                   >
                     Cancel
                   </button>
@@ -319,14 +312,9 @@ export default function CheckInPage() {
             )}
 
             {trustedContacts.length === 0 ? (
-              <div
-                className="rounded-2xl p-8 text-center border-2 border-primary/20"
-                style={{ backgroundColor: "var(--background)" }}
-              >
+              <div className="bg-background rounded-2xl p-8 text-center border-2 border-primary/20">
                 <Users className="w-16 h-16 text-accent/50 mx-auto mb-4 animate-bounce-gentle" />
-                <p style={{ color: "var(--foreground)" }} className="opacity-70 text-lg">
-                  Add trusted contacts to send them safety alerts
-                </p>
+                <p className="text-foreground/70 text-lg">Add trusted contacts to send them safety alerts</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -334,14 +322,14 @@ export default function CheckInPage() {
                   <div
                     key={contact.id}
                     className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-4 border-2 border-primary/20 flex justify-between items-start hover:border-primary/50 transition animate-slide-up"
-                    style={{ animationDelay: `${0.05 * idx}s`, color: "var(--foreground)" }}
+                    style={{ animationDelay: `${0.05 * idx}s` }}
                   >
                     <div>
-                      <p className="font-bold text-lg">{contact.name}</p>
-                      <p className="text-sm opacity-60 flex items-center gap-1 mt-1">
+                      <p className="font-bold text-foreground text-lg">{contact.name}</p>
+                      <p className="text-sm text-foreground/60 flex items-center gap-1 mt-1">
                         <Send className="w-3 h-3" /> {contact.phone}
                       </p>
-                      <p className="text-sm opacity-60">{contact.email}</p>
+                      <p className="text-sm text-foreground/60">{contact.email}</p>
                     </div>
                     <button
                       onClick={() => handleRemoveContact(contact.id)}
@@ -357,8 +345,8 @@ export default function CheckInPage() {
 
           {/* Check-In Form */}
           <div
-            className="backdrop-blur-sm rounded-3xl p-8 shadow-xl mb-8 border-2 border-accent/20 animate-slide-up"
-            style={{ animationDelay: "0.3s", backgroundColor: "var(--card)", color: "var(--card-foreground)" }}
+            className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl mb-8 border-2 border-accent/20 animate-slide-up"
+            style={{ animationDelay: "0.3s" }}
           >
             {!showCheckInForm ? (
               <div className="space-y-4">
@@ -387,7 +375,7 @@ export default function CheckInPage() {
               <div className="space-y-5">
                 {/* Check-In Type Selection */}
                 <div>
-                  <label className="block text-sm font-semibold mb-3">Alert Type</label>
+                  <label className="block text-sm font-semibold text-foreground mb-3">Alert Type</label>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setCheckInType("safe")}
@@ -416,17 +404,16 @@ export default function CheckInPage() {
 
                 {/* Location Input */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Current Location</label>
+                  <label className="block text-sm font-semibold text-foreground mb-2">Current Location</label>
                   <input
                     type="text"
                     placeholder="Start typing a city name..."
                     value={location}
                     onChange={(e) => handleLocationChange(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
-                    style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
+                    className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 bg-background transition"
                   />
                   {coordinates && (
-                    <p className="text-xs opacity-60 mt-2">
+                    <p className="text-xs text-foreground/60 mt-2">
                       📍 {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}
                     </p>
                   )}
@@ -441,8 +428,7 @@ export default function CheckInPage() {
                             setSelectedCity(city)
                             getLocationAndNearbyPolice()
                           }}
-                          className="w-full text-left px-4 py-3 hover:bg-primary/20 transition flex items-center gap-2 border-b border-primary/10 last:border-b-0"
-                          style={{ color: "var(--foreground)" }}
+                          className="w-full text-left px-4 py-3 hover:bg-primary/20 transition flex items-center gap-2 text-foreground border-b border-primary/10 last:border-b-0"
                         >
                           <MapPin className="w-5 h-5 text-primary" />
                           {city}
@@ -454,33 +440,28 @@ export default function CheckInPage() {
 
                 {/* Custom Message */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Message (Optional)</label>
+                  <label className="block text-sm font-semibold text-foreground mb-2">Message (Optional)</label>
                   <textarea
                     placeholder="Add any additional information..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition resize-none"
+                    className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 bg-background transition resize-none"
                     rows={3}
-                    style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
                   />
                 </div>
 
                 {/* Nearby Police Stations */}
                 {nearbyPolice.length > 0 && (
-                  <div className="bg-destructive/10 border-2 border-destructive rounded-xl p-4">
-                    <h3 className="font-bold flex items-center gap-2 mb-3">
-                      <Target className="w-5 h-5 text-destructive" />
+                  <div className="bg-destructive/10 border-2 border-destructive/30 rounded-xl p-4">
+                    <h3 className="font-bold text-destructive flex items-center gap-2 mb-3">
+                      <Target className="w-5 h-5" />
                       Nearby Police Stations
                     </h3>
                     <div className="space-y-2">
                       {nearbyPolice.map((station) => (
-                        <div
-                          key={station.id}
-                          className="rounded-lg p-3 border border-destructive/20"
-                          style={{ backgroundColor: "var(--card)" }}
-                        >
-                          <p className="font-semibold">{station.name}</p>
-                          <p className="text-sm opacity-60">
+                        <div key={station.id} className="bg-card rounded-lg p-3 border border-destructive/20">
+                          <p className="font-semibold text-foreground">{station.name}</p>
+                          <p className="text-sm text-foreground/60">
                             📍 {station.distance.toFixed(1)} km | ☎️ {station.phone}
                           </p>
                         </div>
@@ -490,12 +471,9 @@ export default function CheckInPage() {
                 )}
 
                 {trustedContacts.length === 0 && (
-                  <div
-                    className="rounded-xl p-4 flex items-start gap-3"
-                    style={{ backgroundColor: "var(--accent)/10", color: "var(--foreground)" }}
-                  >
+                  <div className="bg-accent/10 border-2 border-accent rounded-xl p-4 flex items-start gap-3">
                     <AlertCircle className="w-6 h-6 text-accent flex-shrink-0 mt-0.5 animate-bounce-gentle" />
-                    <p className="text-sm opacity-70">Add trusted contacts above to send them notifications</p>
+                    <p className="text-sm text-foreground/70">Add trusted contacts above to send them notifications</p>
                   </div>
                 )}
 
@@ -512,8 +490,7 @@ export default function CheckInPage() {
                       setShowCheckInForm(false)
                       setSuggestedCities([])
                     }}
-                    className="flex-1 py-4 rounded-xl font-bold hover:opacity-80 transition"
-                    style={{ backgroundColor: "var(--muted)", color: "var(--foreground)" }}
+                    className="flex-1 bg-muted text-foreground py-4 rounded-xl font-bold hover:bg-muted/80 transition"
                   >
                     Cancel
                   </button>
@@ -524,14 +501,11 @@ export default function CheckInPage() {
 
           {/* Check-In History */}
           <div className="animate-slide-up" style={{ animationDelay: "0.4s" }}>
-            <h2 className="text-2xl font-bold mb-4">Recent Check-Ins</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Recent Check-Ins</h2>
             {checkInLogs.length === 0 ? (
-              <div
-                className="rounded-3xl p-8 text-center shadow-xl border-2 border-primary/20"
-                style={{ backgroundColor: "var(--card)/80" }}
-              >
+              <div className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 text-center shadow-xl border-2 border-primary/20">
                 <Heart className="w-16 h-16 text-primary/30 mx-auto mb-4 animate-heartbeat" />
-                <p className="opacity-70 text-lg">No check-ins yet. Stay safe!</p>
+                <p className="text-foreground/70 text-lg">No check-ins yet. Stay safe!</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -543,20 +517,20 @@ export default function CheckInPage() {
                         ? "bg-destructive/10 border-destructive/50"
                         : "bg-card/80 border-primary/20 hover:border-primary/50"
                     }`}
-                    style={{ animationDelay: `${0.05 * idx}s`, color: "var(--foreground)" }}
+                    style={{ animationDelay: `${0.05 * idx}s` }}
                   >
                     <div className="flex-1">
-                      <p className="font-bold flex items-center gap-2">
+                      <p className="font-semibold text-foreground flex items-center gap-2">
                         <MapPin className="w-5 h-5 text-primary" />
                         {log.location}
                       </p>
-                      <p className="text-sm opacity-60 flex items-center gap-2 mt-1">
+                      <p className="text-sm text-foreground/60 flex items-center gap-2 mt-1">
                         <Clock className="w-4 h-4" />
                         {log.timestamp}
                       </p>
-                      {log.message && <p className="text-sm opacity-70 mt-2 italic">"{log.message}"</p>}
+                      {log.message && <p className="text-sm text-foreground/70 mt-2 italic">"{log.message}"</p>}
                       {log.notifiedContacts.length > 0 && (
-                        <p className="text-xs opacity-60 flex items-center gap-1">
+                        <p className="text-xs text-primary mt-2 flex items-center gap-1">
                           <Users className="w-3 h-3" />
                           Notified: {log.notifiedContacts.join(", ")}
                         </p>
