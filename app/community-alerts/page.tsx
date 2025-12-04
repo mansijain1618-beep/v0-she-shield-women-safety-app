@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
-import { AlertCircle, MapPin, Clock, Eye, Send } from "lucide-react"
+import { AlertCircle, MapPin, Clock, Send, Shield } from "lucide-react"
 
 interface Report {
   id: string
@@ -23,12 +23,10 @@ export default function CommunityAlertsPage() {
   const [anonymous, setAnonymous] = useState(true)
 
   useEffect(() => {
-    // Load reports from localStorage
     const saved = localStorage.getItem("communityReports")
     if (saved) {
       setReports(JSON.parse(saved))
     } else {
-      // Add sample reports
       const sampleReports: Report[] = [
         {
           id: "1",
@@ -78,58 +76,92 @@ export default function CommunityAlertsPage() {
     setDescription("")
     setReportType("suspicious")
     setShowForm(false)
+    alert("Report submitted anonymously. Thank you for keeping the community safe!")
+  }
 
-    alert("Report submitted successfully! Your report helps keep our community safe.")
+  const handleDeleteReport = (id: string) => {
+    const updated = reports.filter((r) => r.id !== id)
+    setReports(updated)
+    localStorage.setItem("communityReports", JSON.stringify(updated))
   }
 
   const getRiskColor = (level: string) => {
     switch (level) {
-      case "low":
-        return "bg-green-100 border-green-300 text-green-700"
-      case "medium":
-        return "bg-yellow-100 border-yellow-300 text-yellow-700"
       case "high":
-        return "bg-red-100 border-red-300 text-red-700"
+        return "bg-red-500/20 text-red-700 border-red-300"
+      case "medium":
+        return "bg-yellow-500/20 text-yellow-700 border-yellow-300"
+      case "low":
+        return "bg-green-500/20 text-green-700 border-green-300"
       default:
-        return ""
+        return "bg-muted text-foreground"
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-pink-50">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background relative">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 right-20 w-80 h-80 bg-gradient-to-br from-accent/15 to-primary/10 rounded-full blur-3xl animate-blob-1"></div>
+        <div className="absolute bottom-20 left-1/4 w-96 h-96 bg-gradient-to-tl from-secondary/15 to-accent/10 rounded-full blur-3xl animate-blob-2"></div>
+      </div>
+
       <Navbar />
 
-      <div className="pt-12 pb-12 px-4 md:px-8">
+      <div className="pt-12 pb-12 px-4 md:px-8 relative z-10">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold text-primary mb-2">Community Alert Reporting</h1>
-          <p className="text-gray-600 mb-8">Report incidents anonymously and view community safety insights</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2 animate-slide-up">
+            Community Alerts
+          </h1>
+          <p className="text-foreground/70 mb-8 animate-slide-up" style={{ animationDelay: "0.1s" }}>
+            Share and view community safety reports. All submissions are anonymous.
+          </p>
 
-          {/* Report Form */}
-          <div className="bg-white rounded-2xl p-6 shadow-md mb-8 border-2 border-pink-100">
-            {!showForm ? (
-              <button
-                onClick={() => setShowForm(true)}
-                className="w-full flex items-center justify-center gap-3 bg-primary text-white py-4 px-6 rounded-xl font-bold hover:bg-opacity-90 transition"
-              >
-                <AlertCircle className="w-6 h-6" />
-                Report an Incident
-              </button>
-            ) : (
+          {!showForm ? (
+            <button
+              onClick={() => setShowForm(true)}
+              className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground py-5 px-8 rounded-2xl font-bold hover:shadow-2xl transition-all hover:scale-105 mb-8 animate-slide-up animate-glow-gradient"
+              style={{ animationDelay: "0.2s" }}
+            >
+              <Send className="w-6 h-6" />
+              Report an Incident
+            </button>
+          ) : (
+            <div
+              className="bg-card/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border-2 border-primary/20 mb-8 animate-slide-in-left"
+              style={{ animationDelay: "0.2s" }}
+            >
+              <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-2">
+                <Shield className="w-6 h-6" />
+                Submit Anonymous Report
+              </h2>
+
               <div className="space-y-4">
+                {/* Report Type */}
                 <div>
-                  <label className="block text-sm font-semibold text-foreground mb-2">Incident Type</label>
-                  <select
-                    value={reportType}
-                    onChange={(e) => setReportType(e.target.value as any)}
-                    className="w-full px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white"
-                  >
-                    <option value="suspicious">Suspicious Activity</option>
-                    <option value="harassment">Harassment</option>
-                    <option value="assault">Assault</option>
-                    <option value="other">Other</option>
-                  </select>
+                  <label className="block text-sm font-semibold text-foreground mb-3">Incident Type</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: "harassment" as const, label: "Harassment" },
+                      { value: "assault" as const, label: "Assault" },
+                      { value: "suspicious" as const, label: "Suspicious Activity" },
+                      { value: "other" as const, label: "Other" },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => setReportType(option.value)}
+                        className={`px-4 py-3 rounded-xl font-semibold transition-all border-2 ${
+                          reportType === option.value
+                            ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground border-primary"
+                            : "bg-background text-foreground border-primary/20 hover:border-primary/50"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
+                {/* Location */}
                 <div>
                   <label className="block text-sm font-semibold text-foreground mb-2">Location</label>
                   <input
@@ -137,91 +169,104 @@ export default function CommunityAlertsPage() {
                     placeholder="Where did this happen?"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white"
+                    className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 bg-background transition"
                   />
                 </div>
 
+                {/* Description */}
                 <div>
                   <label className="block text-sm font-semibold text-foreground mb-2">Description</label>
                   <textarea
-                    placeholder="Describe what happened..."
+                    placeholder="Describe what happened (optional details help the community)"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 bg-background transition resize-none"
                     rows={4}
-                    className="w-full px-4 py-2 border-2 border-pink-100 rounded-lg focus:outline-none focus:border-primary bg-white resize-none"
                   />
                 </div>
 
-                <label className="flex items-center gap-2 cursor-pointer">
+                {/* Anonymous Toggle */}
+                <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
+                    id="anonymous"
                     checked={anonymous}
                     onChange={(e) => setAnonymous(e.target.checked)}
-                    className="w-4 h-4"
+                    className="w-4 h-4 border-2 border-primary rounded"
                   />
-                  <span className="text-sm font-medium text-foreground">Report anonymously</span>
-                </label>
+                  <label htmlFor="anonymous" className="text-sm font-semibold text-foreground">
+                    Post anonymously (recommended)
+                  </label>
+                </div>
 
+                {/* Submit Buttons */}
                 <div className="flex gap-3">
                   <button
                     onClick={handleSubmitReport}
-                    className="flex-1 bg-primary text-white py-3 rounded-xl font-bold hover:bg-opacity-90 transition flex items-center justify-center gap-2"
+                    className="flex-1 bg-gradient-to-r from-primary to-secondary text-primary-foreground py-3 rounded-xl font-bold hover:shadow-lg transition-all hover:scale-105"
                   >
-                    <Send className="w-5 h-5" />
                     Submit Report
                   </button>
                   <button
                     onClick={() => setShowForm(false)}
-                    className="flex-1 bg-gray-300 text-foreground py-3 rounded-xl font-bold hover:bg-gray-400 transition"
+                    className="flex-1 bg-muted text-foreground py-3 rounded-xl font-bold hover:bg-muted/80 transition"
                   >
                     Cancel
                   </button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Reports List */}
-          <div>
-            <h2 className="text-2xl font-bold text-foreground mb-4">Recent Reports</h2>
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-primary mb-4 animate-slide-up" style={{ animationDelay: "0.3s" }}>
+              Community Reports
+            </h2>
             {reports.length === 0 ? (
-              <div className="bg-white rounded-2xl p-8 text-center shadow-md border-2 border-pink-100">
-                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No reports yet</p>
+              <div
+                className="bg-card/80 backdrop-blur-sm rounded-2xl p-8 text-center border-2 border-primary/20 animate-slide-up"
+                style={{ animationDelay: "0.4s" }}
+              >
+                <AlertCircle className="w-16 h-16 text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-foreground/70">No reports yet. Be the first to share community insights!</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {reports.map((report) => (
-                  <div key={report.id} className="bg-white rounded-2xl p-6 shadow-md border-2 border-pink-100">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="font-bold text-foreground text-lg capitalize">{report.type}</p>
-                        <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
-                          <MapPin className="w-4 h-4" /> {report.location}
-                        </p>
-                      </div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-semibold border-2 ${getRiskColor(report.riskLevel)}`}
+              reports.map((report, idx) => (
+                <div
+                  key={report.id}
+                  className={`bg-card/80 backdrop-blur-sm rounded-2xl p-6 border-l-4 transition-all hover:shadow-lg animate-slide-up ${
+                    report.riskLevel === "high"
+                      ? "border-l-red-500 bg-gradient-to-r from-red-500/5 to-transparent"
+                      : report.riskLevel === "medium"
+                        ? "border-l-yellow-500 bg-gradient-to-r from-yellow-500/5 to-transparent"
+                        : "border-l-green-500 bg-gradient-to-r from-green-500/5 to-transparent"
+                  }`}
+                  style={{ animationDelay: `${0.4 + idx * 0.05}s` }}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`px-3 py-1 rounded-lg text-sm font-bold ${getRiskColor(report.riskLevel)} border`}
                       >
-                        {report.riskLevel.charAt(0).toUpperCase() + report.riskLevel.slice(1)} Risk
-                      </span>
+                        {report.riskLevel.toUpperCase()}
+                      </div>
+                      <span className="text-sm text-foreground/70 capitalize">{report.type}</span>
                     </div>
-
-                    <p className="text-gray-700 mb-3">{report.description}</p>
-
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <p className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" /> {report.timestamp}
-                      </p>
-                      {report.anonymous && (
-                        <p className="flex items-center gap-2">
-                          <Eye className="w-4 h-4" /> Anonymous
-                        </p>
-                      )}
-                    </div>
+                    {report.anonymous && <span className="text-xs text-foreground/60">Anonymous</span>}
                   </div>
-                ))}
-              </div>
+
+                  <p className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-primary" />
+                    {report.location}
+                  </p>
+                  <p className="text-foreground/70 mb-3">{report.description}</p>
+                  <p className="text-xs text-foreground/60 flex items-center gap-2">
+                    <Clock className="w-3 h-3" />
+                    {report.timestamp}
+                  </p>
+                </div>
+              ))
             )}
           </div>
         </div>

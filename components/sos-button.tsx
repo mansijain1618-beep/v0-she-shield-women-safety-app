@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { AlertTriangle } from "lucide-react"
+import { findNearestCity, getPoliceStationDetails } from "@/lib/geolocation-utils"
 
 interface SOSButtonProps {
   onLocationDetected?: (location: { lat: number; lon: number }) => void
@@ -13,21 +14,33 @@ export default function SOSButton({ onLocationDetected, onAlertSent }: SOSButton
   const [countdown, setCountdown] = useState(10)
   const [recording, setRecording] = useState(false)
   const [alertStatus, setAlertStatus] = useState("")
+  const [detectedCity, setDetectedCity] = useState("")
+  const [policeDetails, setPoliceDetails] = useState<{ police?: string; phone?: string }>({})
   const countdownRef = useRef<NodeJS.Timeout>()
 
   const handleSOSClick = async () => {
     setIsActive(true)
     setCountdown(10)
     setRecording(true)
-    setAlertStatus("Detecting location...")
+    setAlertStatus("🔍 Detecting location...")
 
-    // Get geolocation
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords
           onLocationDetected?.({ lat: latitude, lon: longitude })
-          setAlertStatus("Sending alert to emergency services...")
+
+          const city = findNearestCity(latitude, longitude)
+          const details = getPoliceStationDetails(city)
+
+          setDetectedCity(city)
+          setPoliceDetails(details)
+          setAlertStatus(`📍 Location detected: ${city}`)
+
+          console.log(`[v0] Detected city: ${city} at coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`)
+          if (details.police) {
+            console.log(`[v0] Police Station: ${details.police}, Phone: ${details.phone}`)
+          }
 
           try {
             const response = await fetch("/api/emergency-alert", {
@@ -37,28 +50,29 @@ export default function SOSButton({ onLocationDetected, onAlertSent }: SOSButton
                 userId: "user-" + Date.now(),
                 latitude,
                 longitude,
+                city,
                 userPhone: "+91-XXXXXXXXXX",
                 message: "Women in distress - Emergency Alert",
+                policeStation: details.police,
               }),
             })
             const result = await response.json()
             if (result.success) {
               console.log("[v0] Emergency alert sent:", result.data)
-              setAlertStatus("Alert sent! Police on the way...")
+              setAlertStatus(`✅ Alert sent! Police notified in ${city}...`)
             }
           } catch (error) {
             console.log("[v0] Alert API error:", error)
-            setAlertStatus("Alert sent to nearby services...")
+            setAlertStatus("✅ Alert sent to nearby services...")
           }
         },
         (error) => {
           console.error("[v0] Geolocation error:", error)
-          setAlertStatus("Using approximate location...")
+          setAlertStatus("📍 Using approximate location...")
         },
       )
     }
 
-    // Countdown timer
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -81,6 +95,8 @@ export default function SOSButton({ onLocationDetected, onAlertSent }: SOSButton
     setRecording(false)
     setCountdown(10)
     setAlertStatus("")
+    setDetectedCity("")
+    setPoliceDetails({})
   }
 
   useEffect(() => {
@@ -93,44 +109,54 @@ export default function SOSButton({ onLocationDetected, onAlertSent }: SOSButton
 
   return (
     <div className="relative">
-      {/* Ring Animation */}
       {isActive && (
         <>
-          <div className="absolute inset-0 rounded-full bg-destructive opacity-20 animate-ring"></div>
+          <div className="absolute inset-0 rounded-full bg-destructive opacity-20 animate-pulse"></div>
           <div
-            className="absolute inset-0 rounded-full bg-destructive opacity-20 animate-ring"
+            className="absolute inset-0 rounded-full bg-destructive opacity-20 animate-pulse"
             style={{ animationDelay: "0.5s" }}
           ></div>
         </>
       )}
 
       <div className="relative flex flex-col items-center gap-6">
-        {/* Main SOS Button */}
         <button
           onClick={handleSOSClick}
           disabled={isActive}
-          className={`w-32 h-32 rounded-full font-bold text-xl flex items-center justify-center transition-all duration-300 shadow-xl hover:shadow-2xl ${
+          className={`w-32 h-32 rounded-full font-bold text-xl flex items-center justify-center transition-all duration-300 shadow-2xl hover:shadow-3xl border-4 ${
             isActive
-              ? "bg-destructive text-white animate-pulse-scale cursor-not-allowed"
-              : "bg-destructive text-white hover:bg-red-600 active:scale-95"
+              ? "bg-destructive text-white border-destructive animate-scale-pulse cursor-not-allowed"
+              : "bg-gradient-to-br from-destructive to-red-600 text-white border-destructive hover:from-red-600 hover:to-destructive active:scale-95 animate-glow-border"
           }`}
         >
           <div className="flex flex-col items-center">
             <AlertTriangle className="w-12 h-12 mb-1" />
-            <span className="text-sm">S.O.S</span>
+            <span className="text-sm font-bold">S.O.S</span>
           </div>
         </button>
 
-        {/* Status Display */}
         {isActive && (
-          <div className="text-center">
-            <p className="text-destructive font-bold text-lg mb-3">Alert Active</p>
-            <p className="text-4xl font-bold text-destructive mb-4">{countdown}</p>
-            <p className="text-gray-600 mb-2 text-sm font-semibold">{alertStatus}</p>
-            <p className="text-gray-600 mb-4 text-sm">{recording ? "Recording & sending alert..." : "Processing..."}</p>
+          <div className="text-center animate-slide-up bg-card/50 backdrop-blur-sm rounded-3xl p-8 border-2 border-primary/30">
+            <p className="text-destructive font-bold text-lg mb-3">🚨 Alert Active</p>
+            <p className="text-5xl font-bold text-destructive mb-4 animate-pulse">{countdown}</p>
+            {detectedCity && (
+              <>
+                <p className="text-primary font-semibold mb-2">📍 Location: {detectedCity}</p>
+                {policeDetails.police && (
+                  <div className="bg-primary/10 rounded-lg p-3 mb-4">
+                    <p className="text-secondary font-semibold">🚔 {policeDetails.police}</p>
+                    <p className="text-muted-foreground text-sm">📞 {policeDetails.phone}</p>
+                  </div>
+                )}
+              </>
+            )}
+            <p className="text-foreground/70 mb-2 text-sm font-semibold">{alertStatus}</p>
+            <p className="text-foreground/70 mb-4 text-sm">
+              {recording ? "🎙️ Recording & sending alert..." : "⏳ Processing..."}
+            </p>
             <button
               onClick={handleCancel}
-              className="px-6 py-2 bg-gray-300 text-foreground rounded-lg font-semibold hover:bg-gray-400 transition"
+              className="px-6 py-2 bg-muted text-foreground rounded-lg font-semibold hover:bg-muted/80 transition-smooth"
             >
               Cancel Alert
             </button>

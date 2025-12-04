@@ -60,7 +60,6 @@ export default function SafeRoutePage() {
           const userLat = position.coords.latitude
           const userLng = position.coords.longitude
           const detectedCity = findNearestCity(userLat, userLng)
-
           setStartLocation({
             lat: userLat,
             lng: userLng,
@@ -103,15 +102,12 @@ export default function SafeRoutePage() {
       setLocationError("Please enable location or select a starting point")
       return
     }
-
     if (!selectedDestination) {
       setLocationError("Please select a destination in the city")
       return
     }
-
     const destLocation = availableDestinations.find((d) => d.name === selectedDestination)
     if (!destLocation) return
-
     setLoading(true)
     try {
       const response = await fetch("/api/safe-routes", {
@@ -127,7 +123,6 @@ export default function SafeRoutePage() {
           waypoints: selectedWaypoints.map((w) => ({ name: w.name, lat: w.lat, lng: w.lng })),
         }),
       })
-
       const data = await response.json()
       if (data.success) {
         setRoutes(data.routes)
@@ -144,7 +139,6 @@ export default function SafeRoutePage() {
   const handleStartNavigation = () => {
     setIsNavigating(true)
     setNavigationStep(0)
-    // Simulate navigation progress
     const interval = setInterval(() => {
       setNavigationStep((prev) => {
         if (prev >= 100) {
@@ -187,13 +181,21 @@ export default function SafeRoutePage() {
   const selectedRouteData = routes.find((r) => r.type === selectedRoute)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-pink-50">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-primary/8 rounded-full blur-3xl animate-float"></div>
+        <div
+          className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/8 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "1.5s" }}
+        ></div>
+      </div>
       <Navbar />
-
-      <div className="pt-12 pb-12 px-4 md:px-8">
+      <div className="pt-12 pb-12 px-4 md:px-8 relative z-10">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-primary mb-2">Safe Route Recommendation</h1>
-          <p className="text-gray-600 mb-8">Navigate safely within cities with real locations and waypoints</p>
+          <div className="mb-8 animate-slide-down">
+            <h1 className="text-4xl font-bold text-primary mb-2">Safe Route Recommendation</h1>
+            <p className="text-muted-foreground">Navigate safely within cities with real locations and waypoints</p>
+          </div>
 
           {locationError && (
             <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6 text-yellow-800">
@@ -219,10 +221,7 @@ export default function SafeRoutePage() {
                       if ("geolocation" in navigator) {
                         navigator.geolocation.getCurrentPosition(
                           (position) => {
-                            setStartLocation({
-                              lat: position.coords.latitude,
-                              lng: position.coords.longitude,
-                            })
+                            setStartLocation({ lat: position.coords.latitude, lng: position.coords.longitude })
                             setLocationError("")
                           },
                           () => {
@@ -285,7 +284,9 @@ export default function SafeRoutePage() {
 
             {/* Destination Selection */}
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-foreground mb-3">Select Destination in {city}</label>
+              <label className="block text-sm font-semibold text-foreground mb-3">
+                Select Destination in {city}
+              </label>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pb-4">
                 {filteredDestinations.map((dest) => (
                   <button
@@ -318,7 +319,10 @@ export default function SafeRoutePage() {
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto pb-4">
                   {availableDestinations
-                    .filter((d) => d.name !== selectedDestination && (d.type === "hospital" || d.type === "police"))
+                    .filter(
+                      (d) =>
+                        d.name !== selectedDestination && (d.type === "hospital" || d.type === "police"),
+                    )
                     .map((dest) => (
                       <button
                         key={dest.name}
@@ -379,8 +383,7 @@ export default function SafeRoutePage() {
                   onClick={handleStopNavigation}
                   className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2"
                 >
-                  <Square className="w-4 h-4" />
-                  Stop Navigation
+                  <Square className="w-4 h-4" /> Stop Navigation
                 </button>
               </div>
               <div className="mb-4">
@@ -390,7 +393,10 @@ export default function SafeRoutePage() {
                     <p className="text-sm text-gray-600">Following {selectedRoute} route...</p>
                     <p className="font-semibold text-foreground">
                       Distance remaining:{" "}
-                      {(((100 - navigationStep) * Number.parseFloat(selectedRouteData.distance)) / 100).toFixed(1)} km
+                      {(((100 - navigationStep) * Number.parseFloat(selectedRouteData.distance)) / 100).toFixed(
+                        1,
+                      )}{" "}
+                      km
                     </p>
                   </div>
                 </div>
@@ -417,100 +423,76 @@ export default function SafeRoutePage() {
             <div className="bg-white rounded-2xl p-6 shadow-md border-2 border-pink-100">
               <div className="flex items-center gap-3 mb-2">
                 <MapPin className="w-6 h-6 text-primary" />
-                <h3 className="font-semibold text-foreground">Traffic</h3>
-              </div>
-              <p className="text-gray-600">Moderate traffic • ~5 min delays</p>
-            </div>
-          </div>
+                <h3 className
+import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet"
+import L from "leaflet"
+import 'leaflet/dist/leaflet.css'
 
-          {/* Routes Display */}
-          {routes.length > 0 ? (
-            <div className="space-y-6">
-              {routes.map((route) => (
-                <div
-                  key={route.type}
-                  onClick={() => setSelectedRoute(route.type)}
-                  className={`bg-white rounded-2xl p-6 shadow-md cursor-pointer transition-all border-2 ${
-                    selectedRoute === route.type
-                      ? "border-primary shadow-lg scale-105"
-                      : "border-pink-100 hover:border-primary"
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-2xl font-bold text-foreground capitalize mb-2">{route.type} Route</h3>
-                      <p className="text-gray-600">{route.description}</p>
-                    </div>
-                    <span
-                      className={`px-4 py-2 rounded-full font-semibold flex items-center gap-2 border-2 ${getRiskColor(
-                        route.riskLevel,
-                      )}`}
-                    >
-                      {getRiskIcon(route.riskLevel)}
-                      {route.riskLevel.charAt(0).toUpperCase() + route.riskLevel.slice(1)} Risk
-                    </span>
-                  </div>
+// Fix for default marker icons in Leaflet
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+iconUrl: require('leaflet/dist/images/marker-icon.png'),
+shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+})
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 pb-4 border-b-2 border-pink-100">
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Distance</p>
-                      <p className="text-xl font-bold text-primary">{route.distance}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Duration</p>
-                      <p className="text-xl font-bold text-primary flex items-center gap-2">
-                        <Clock className="w-5 h-5" /> {route.duration}
-                      </p>
-                    </div>
-                  </div>
+interface EnhancedMapViewProps {
+startLat: number
+startLng: number
+endLat: number
+endLng: number
+waypoints?: { lat: number; lng: number; name?: string }[]
+routeCoordinates?: Array<[number, number]>
+}
 
-                  <div className="mb-4">
-                    <p className="font-semibold text-foreground mb-3">Waypoints:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {route.waypoints.map((point, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-pink-100 text-primary rounded-full text-sm font-medium">
-                          {point}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+export default function EnhancedMapView({
+startLat,
+startLng,
+endLat,
+endLng,
+waypoints = [],
+routeCoordinates = [],
+}: EnhancedMapViewProps) {
+// Combine route coordinates for polyline if provided
+const polylinePoints = routeCoordinates.length
+? routeCoordinates
+: [[startLat, startLng], ...waypoints.map(w => [w.lat, w.lng]), [endLat, endLng]]
 
-                  {route.safetyRecommendations && route.safetyRecommendations.length > 0 && (
-                    <div className="mb-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
-                      <p className="font-semibold text-yellow-800 text-sm mb-2">Safety Recommendations:</p>
-                      <ul className="text-xs text-yellow-700 space-y-1">
-                        {route.safetyRecommendations.map((rec, idx) => (
-                          <li key={idx} className="flex gap-2">
-                            <span>•</span>
-                            <span>{rec}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+return (
+<MapContainer
+center={[startLat, startLng]}
+zoom={13}
+scrollWheelZoom={true}
+className="w-full h-[500px] rounded-2xl shadow-md"
+> <TileLayer
+     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+   />
 
-                  {selectedRoute === route.type && !isNavigating && (
-                    <button
-                      onClick={handleStartNavigation}
-                      className="w-full bg-primary text-white py-3 rounded-xl font-bold hover:bg-opacity-90 transition flex items-center justify-center gap-2"
-                    >
-                      <Play className="w-5 h-5" />
-                      Start Navigation
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            !loading && (
-              <div className="text-center py-12 bg-white rounded-2xl border-2 border-pink-100">
-                <MapPin className="w-12 h-12 text-pink-300 mx-auto mb-4" />
-                <p className="text-gray-600 text-lg">Calculate a route to get started with safe navigation</p>
-              </div>
-            )
-          )}
-        </div>
-      </div>
-    </div>
-  )
+```
+  {/* Start Marker */}
+  <Marker position={[startLat, startLng]}>
+    <Popup>Start Location</Popup>
+  </Marker>
+
+  {/* End Marker */}
+  <Marker position={[endLat, endLng]}>
+    <Popup>Destination</Popup>
+  </Marker>
+
+  {/* Waypoints */}
+  {waypoints.map((wp, idx) => (
+    <Marker key={idx} position={[wp.lat, wp.lng]}>
+      <Popup>{wp.name || `Waypoint ${idx + 1}`}</Popup>
+    </Marker>
+  ))}
+
+  {/* Route Polyline */}
+  {polylinePoints.length > 1 && (
+    <Polyline positions={polylinePoints} color="blue" weight={4} />
+  )}
+</MapContainer>
+```
+
+)
 }
