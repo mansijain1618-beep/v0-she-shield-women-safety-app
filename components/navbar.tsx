@@ -5,46 +5,38 @@ import { Shield } from "lucide-react"
 
 export default function Navbar() {
   return (
-    <nav className="sticky top-0 z-50 bg-gradient-to-r from-background via-card to-background backdrop-blur-xl border-b-2 border-primary/30 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-bold text-2xl hover:opacity-80 transition-all duration-300 group"
-        >
-          <div className="p-2 bg-gradient-to-br from-primary to-secondary rounded-lg group-hover:shadow-lg group-hover:shadow-primary/50 transition-all">
-            <Shield className="w-7 h-7 text-white" />
+    <nav className="sticky top-0 z-50 bg-[#F8F5FF] dark:bg-[#0C0017] border-b border-[#EDE7FF] dark:border-[#1a1226] backdrop-blur-md">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 font-bold text-2xl text-[#4F46E5] hover:opacity-90 transition">
+          <div style={{ boxShadow: "0 0 10px rgba(79,70,229,0.18)" }} className="rounded-full p-2 bg-white dark:bg-[rgba(255,255,255,0.03)] border border-[#6D28D9]/20">
+            <Shield className="w-6 h-6 text-[#7C3AED]" />
           </div>
-          <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent font-extrabold">
-            SheShield
-          </span>
+          <span className="text-gray-900 dark:text-white">SheShield</span>
         </Link>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-1">
-          {[
-            { href: "/", label: "🏠 Home" },
-            { href: "/safe-route", label: "🗺️ Safe Routes" },
-            { href: "/check-in", label: "✅ Check-In" },
-            { href: "/chatbot", label: "💬 Chatbot" },
-            { href: "/community-alerts", label: "🚨 Alerts" },
-            { href: "/dashboard", label: "📊 Dashboard" },
-          ].map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="px-4 py-2 text-foreground font-semibold hover:bg-primary/20 hover:text-primary rounded-lg transition-all duration-300 transform hover:scale-105"
-            >
-              {item.label}
-            </Link>
-          ))}
+        <div className="hidden md:flex items-center gap-8">
+          <Link href="/" className="text-gray-900 dark:text-gray-100 hover:text-[#7C3AED] transition font-medium">
+            Home
+          </Link>
+          <Link href="/safe-route" className="text-gray-900 dark:text-gray-100 hover:text-[#7C3AED] transition font-medium">
+            Safe Routes
+          </Link>
+          <Link href="/check-in" className="text-gray-900 dark:text-gray-100 hover:text-[#7C3AED] transition font-medium">
+            Check-In
+          </Link>
+          <Link href="/chatbot" className="text-gray-900 dark:text-gray-100 hover:text-[#7C3AED] transition font-medium">
+            Chatbot
+          </Link>
+          <Link href="/community-alerts" className="text-gray-900 dark:text-gray-100 hover:text-[#7C3AED] transition font-medium">
+            Alerts
+          </Link>
+          <Link href="/dashboard" className="text-gray-900 dark:text-gray-100 hover:text-[#7C3AED] transition font-medium">
+            Dashboard
+          </Link>
         </div>
 
-        {/* Mobile Menu Button */}
         <div className="md:hidden">
-          <button className="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-lg font-bold hover:shadow-lg transition-all">
-            ☰ Menu
-          </button>
+          <button className="text-[#7C3AED] font-bold">Menu</button>
         </div>
       </div>
     </nav>

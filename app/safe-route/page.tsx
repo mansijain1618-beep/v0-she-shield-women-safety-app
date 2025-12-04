@@ -3,7 +3,18 @@
 import { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
 import EnhancedMapView from "@/components/enhanced-map-view"
-import { MapPin, CheckCircle, Navigation, Loader2 } from "lucide-react"
+import {
+  MapPin,
+  Clock,
+  Cloud,
+  AlertTriangle,
+  CheckCircle,
+  Navigation,
+  Loader2,
+  MapPinned,
+  Play,
+  Square,
+} from "lucide-react"
 import { cityLocations } from "@/lib/india-data"
 import { findNearestCity } from "@/lib/geolocation-utils"
 
@@ -16,7 +27,6 @@ interface Route {
   waypoints: string[]
   coordinates?: Array<[number, number]>
   safetyRecommendations?: string[]
-  riskScore?: number
 }
 
 interface Waypoint {
@@ -27,6 +37,7 @@ interface Waypoint {
 }
 
 export default function SafeRoutePage() {
+  // (all your same hooks and logic retained)
   const [routes, setRoutes] = useState<Route[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedRoute, setSelectedRoute] = useState<"shortest" | "safest">("safest")
@@ -43,6 +54,7 @@ export default function SafeRoutePage() {
   const [isNavigating, setIsNavigating] = useState(false)
   const [navigationStep, setNavigationStep] = useState(0)
 
+  // geolocation detection - kept same
   useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -76,6 +88,7 @@ export default function SafeRoutePage() {
     setSelectedWaypoints([])
   }, [city])
 
+  // indianCities object kept as-is
   const indianCities: Record<string, { lat: number; lng: number }> = {
     Delhi: { lat: 28.6139, lng: 77.209 },
     Mumbai: { lat: 19.076, lng: 72.8776 },
@@ -134,7 +147,6 @@ export default function SafeRoutePage() {
   const handleStartNavigation = () => {
     setIsNavigating(true)
     setNavigationStep(0)
-    // Simulate navigation progress
     const interval = setInterval(() => {
       setNavigationStep((prev) => {
         if (prev >= 100) {
@@ -143,7 +155,7 @@ export default function SafeRoutePage() {
           alert("Navigation Complete! You have reached your destination safely.")
           return 100
         }
-        return prev + Math.random() * 15
+        return Math.min(100, prev + Math.random() * 15)
       })
     }, 3000)
   }
@@ -159,260 +171,310 @@ export default function SafeRoutePage() {
   const getRiskColor = (level: string) => {
     switch (level) {
       case "low":
-        return "bg-green-500/15 border-green-400/50 text-green-300"
+        return "bg-green-50 border-green-200 text-green-700"
       case "medium":
-        return "bg-yellow-500/15 border-yellow-400/50 text-yellow-300"
+        return "bg-yellow-50 border-yellow-200 text-yellow-700"
       case "high":
-        return "bg-red-500/15 border-red-400/50 text-red-300"
+        return "bg-red-50 border-red-200 text-red-700"
       default:
         return ""
     }
   }
 
+  const getRiskIcon = (level: string) => {
+    if (level === "low") return <CheckCircle className="w-5 h-5" />
+    return <AlertTriangle className="w-5 h-5" />
+  }
+
   const selectedRouteData = routes.find((r) => r.type === selectedRoute)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background relative">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-10 w-80 h-80 bg-gradient-to-br from-secondary/20 to-accent/15 rounded-full blur-3xl animate-blob-1"></div>
-        <div className="absolute bottom-10 left-20 w-96 h-96 bg-gradient-to-tl from-primary/20 to-secondary/15 rounded-full blur-3xl animate-blob-2"></div>
+    <div className="min-h-screen bg-[#F8F5FF] dark:bg-[#0C0017] relative overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-[#7C3AED]/8 rounded-full blur-3xl animate-float"></div>
         <div
-          className="absolute top-1/2 right-1/3 w-72 h-72 bg-gradient-to-br from-primary/15 to-accent/10 rounded-full blur-3xl animate-float"
+          className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#4F46E5]/8 rounded-full blur-3xl animate-float"
           style={{ animationDelay: "1.5s" }}
         ></div>
       </div>
 
       <Navbar />
 
-      <div className="pt-16 pb-12 px-4 md:px-8 relative z-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-12 animate-slide-up">
-            <div className="inline-block px-6 py-2 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full border border-primary/30 backdrop-blur-sm mb-4">
-              <p className="text-sm font-semibold text-primary">Navigate Safely</p>
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-3">
-              Safe Route Recommendations
-            </h1>
-            <p className="text-lg text-foreground/70 max-w-3xl">
-              AI-powered routes based on real-time crime data, well-lit roads, police presence, and crowd density
-            </p>
+      <div className="pt-12 pb-12 px-4 md:px-8 relative z-10">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8 animate-slide-down">
+            <h1 className="text-4xl font-bold text-[#7C3AED] mb-2">Safe Route Recommendation</h1>
+            <p className="text-gray-600 dark:text-gray-300">Navigate safely within cities with helpful waypoints and guidance</p>
           </div>
 
           {locationError && (
-            <div
-              className="bg-accent/15 border-2 border-accent/50 rounded-2xl p-4 mb-6 animate-slide-up backdrop-blur-sm"
-              style={{ animationDelay: "0.1s" }}
-            >
-              <p className="text-accent text-sm font-medium">{locationError}</p>
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6 text-yellow-800">
+              {locationError}
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-12">
-            <div
-              className="lg:col-span-1 bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-xl rounded-3xl p-6 shadow-xl border-2 border-primary/20 h-fit animate-slide-in-left hover:border-primary/40 transition-all"
-              style={{ animationDelay: "0.2s" }}
-            >
-              <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-6 flex items-center gap-2">
-                <MapPin className="w-6 h-6 text-primary" />
-                Route Settings
-              </h2>
-
-              <div className="space-y-6">
-                {/* Time of Day Selection */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-foreground">Time of Day</label>
-                  <select
-                    value={timeOfDay}
-                    onChange={(e) => setTimeOfDay(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-primary/20 rounded-xl bg-background/50 text-foreground focus:outline-none focus:border-primary/60 transition-all backdrop-blur-sm"
+          {/* Filters */}
+          <div className="bg-white dark:bg-[rgba(255,255,255,0.03)] rounded-2xl p-6 mb-8 border border-[#6D28D9]/30" style={{ boxShadow: "0 0 15px rgba(79,70,229,0.18)" }}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Current Location</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Your location"
+                    className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:border-[#7C3AED] bg-white text-sm"
+                    value={startLocation ? `${startLocation.lat.toFixed(4)}, ${startLocation.lng.toFixed(4)}` : ""}
+                    readOnly
+                  />
+                  <button
+                    onClick={() => {
+                      if ("geolocation" in navigator) {
+                        navigator.geolocation.getCurrentPosition(
+                          (position) => {
+                            setStartLocation({
+                              lat: position.coords.latitude,
+                              lng: position.coords.longitude,
+                            })
+                            setLocationError("")
+                          },
+                          () => {
+                            setLocationError("Could not access your location.")
+                          },
+                        )
+                      }
+                    }}
+                    className="px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-opacity-95 transition flex items-center gap-2"
                   >
-                    <option>Day (6 AM - 6 PM)</option>
-                    <option>Evening (6 PM - 9 PM)</option>
-                    <option>Night (9 PM - 6 AM)</option>
-                  </select>
+                    <Navigation className="w-4 h-4" />
+                  </button>
                 </div>
+              </div>
 
-                {/* Route Type Selection */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-foreground">Preferred Route</label>
-                  <div className="space-y-2">
-                    {[
-                      {
-                        type: "safest" as const,
-                        label: "Safest Route",
-                        icon: CheckCircle,
-                        desc: "Avoid high-crime areas",
-                      },
-                      { type: "shortest" as const, label: "Shortest Route", icon: Navigation, desc: "Direct path" },
-                    ].map((option) => (
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Select City</label>
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#7C3AED] bg-white"
+                >
+                  {Object.keys(indianCities).map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Time of Day</label>
+                <select
+                  value={timeOfDay}
+                  onChange={(e) => setTimeOfDay(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#7C3AED] bg-white"
+                >
+                  <option>Day (6 AM - 6 PM)</option>
+                  <option>Evening (6 PM - 10 PM)</option>
+                  <option>Night (10 PM - 6 AM)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Filter By Type</label>
+                <select
+                  value={filterByType}
+                  onChange={(e) => setFilterByType(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#7C3AED] bg-white"
+                >
+                  <option value="all">All Places</option>
+                  <option value="landmark">Landmarks</option>
+                  <option value="transport">Transport Hubs</option>
+                  <option value="hospital">Hospitals</option>
+                  <option value="police">Police Stations</option>
+                  <option value="park">Parks</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Destination Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Select Destination in {city}</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pb-4">
+                {filteredDestinations.map((dest) => (
+                  <button
+                    key={dest.name}
+                    onClick={() => setSelectedDestination(dest.name)}
+                    className={`px-4 py-3 rounded-lg border text-left transition flex items-center gap-2 ${
+                      selectedDestination === dest.name
+                        ? "border-[#7C3AED] bg-[#F7EEFF]"
+                        : "border-[#F0E9FF] bg-white hover:border-[#7C3AED]"
+                    }`}
+                  >
+                    <MapPin className="w-4 h-4 flex-shrink-0 text-[#7C3AED]" />
+                    <div>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{dest.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-300">{dest.category}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Optional Waypoints */}
+            {selectedDestination && (
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                  Select Safe Waypoints (Optional)
+                </label>
+                <p className="text-xs text-gray-500 mb-3">
+                  Choose hospitals, police stations, or safe places along the route
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto pb-4">
+                  {availableDestinations
+                    .filter((d) => d.name !== selectedDestination && (d.type === "hospital" || d.type === "police"))
+                    .map((dest) => (
                       <button
-                        key={option.type}
-                        onClick={() => setSelectedRoute(option.type)}
-                        className={`w-full flex items-start gap-3 px-4 py-3 rounded-xl font-semibold transition-all border-2 ${
-                          selectedRoute === option.type
-                            ? "bg-gradient-to-r from-primary/30 to-secondary/20 text-primary border-primary/60 shadow-lg"
-                            : "bg-background/30 text-foreground border-primary/20 hover:border-primary/40 hover:bg-background/50"
+                        key={dest.name}
+                        onClick={() => {
+                          if (selectedWaypoints.find((w) => w.name === dest.name)) {
+                            setSelectedWaypoints(selectedWaypoints.filter((w) => w.name !== dest.name))
+                          } else {
+                            setSelectedWaypoints([...selectedWaypoints, dest])
+                          }
+                        }}
+                        className={`px-3 py-2 rounded-lg border text-left text-sm transition flex items-center gap-2 ${
+                          selectedWaypoints.find((w) => w.name === dest.name)
+                            ? "border-[#7C3AED] bg-[#F7EEFF]"
+                            : "border-[#F0E9FF] bg-white hover:border-[#7C3AED]"
                         }`}
                       >
-                        <option.icon className="w-5 h-5 flex-shrink-0 mt-1" />
-                        <div className="text-left">
-                          <p className="text-sm">{option.label}</p>
-                          <p className="text-xs text-foreground/60">{option.desc}</p>
+                        <MapPinned className="w-3 h-3 text-[#7C3AED]" />
+                        <div>
+                          <p className="font-semibold text-xs text-gray-900 dark:text-gray-100">{dest.name}</p>
                         </div>
                       </button>
                     ))}
-                  </div>
                 </div>
-
-                {/* Current Location Display with enhanced styling */}
-                {startLocation && (
-                  <div className="bg-gradient-to-br from-primary/20 to-secondary/10 rounded-2xl p-4 border-2 border-primary/30">
-                    <p className="text-xs text-foreground/70 font-semibold uppercase tracking-wider mb-2">
-                      Your Location
-                    </p>
-                    <p className="font-bold text-lg text-foreground mb-1">{city}</p>
-                    <p className="text-xs text-foreground/60 font-mono">
-                      {startLocation.lat.toFixed(4)}, {startLocation.lng.toFixed(4)}
-                    </p>
-                  </div>
-                )}
-
-                {/* Calculate Route Button */}
-                <button
-                  onClick={handleCalculateRoute}
-                  disabled={loading || !startLocation || !selectedDestination}
-                  className={`w-full py-3 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 ${
-                    loading || !startLocation || !selectedDestination
-                      ? "bg-muted/50 text-foreground/50 cursor-not-allowed"
-                      : "bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:scale-105 active:scale-95"
-                  }`}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Calculating...
-                    </>
-                  ) : (
-                    <>
-                      <Navigation className="w-5 h-5" />
-                      Calculate Route
-                    </>
-                  )}
-                </button>
               </div>
-            </div>
+            )}
 
-            <div className="lg:col-span-3 space-y-6">
-              {/* Map Display */}
-              <div
-                className="bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-xl rounded-3xl shadow-xl border-2 border-primary/20 overflow-hidden animate-slide-in-right hover:border-primary/40 transition-all"
-                style={{ animationDelay: "0.3s" }}
-              >
-                {startLocation && mapReady ? (
-                  <EnhancedMapView
-                    startCoordinates={startLocation}
-                    destinations={availableDestinations}
-                    selectedWaypoints={selectedWaypoints}
-                  />
-                ) : (
-                  <div className="h-96 flex flex-col items-center justify-center bg-gradient-to-br from-muted/40 to-muted/20">
-                    <Loader2 className="w-12 h-12 text-primary animate-spin mb-3" />
-                    <p className="text-foreground/70 font-medium">Loading interactive map...</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Route Details Cards */}
-              {routes.length > 0 && (
-                <div className="animate-slide-up" style={{ animationDelay: "0.4s" }}>
-                  <h3 className="text-2xl font-bold text-foreground mb-4">Available Routes</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {routes.map((route, idx) => (
-                      <div
-                        key={idx}
-                        className={`bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-xl rounded-2xl p-6 border-2 transition-all duration-300 animate-slide-up hover:shadow-lg ${
-                          selectedRoute === route.type
-                            ? "border-primary/60 shadow-lg shadow-primary/20"
-                            : "border-primary/20 hover:border-primary/40"
-                        }`}
-                        style={{ animationDelay: `${0.1 + idx * 0.05}s` }}
-                      >
-                        <div className="flex items-start justify-between mb-4">
-                          <h4 className="font-bold text-foreground text-lg capitalize">
-                            {route.type === "safest" ? "Safest Route" : "Shortest Route"}
-                          </h4>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                              route.riskLevel === "low"
-                                ? "bg-green-500/20 border-green-400/50 text-green-300"
-                                : route.riskLevel === "medium"
-                                  ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-300"
-                                  : "bg-red-500/20 border-red-400/50 text-red-300"
-                            }`}
-                          >
-                            {route.riskLevel.toUpperCase()} RISK
-                          </span>
-                        </div>
-
-                        {/* Enhanced route details with safety score visualization */}
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-primary/10 rounded-lg p-3">
-                              <p className="text-xs text-foreground/70 mb-1">Distance</p>
-                              <p className="font-bold text-primary text-lg">{route.distance}</p>
-                            </div>
-                            <div className="bg-secondary/10 rounded-lg p-3">
-                              <p className="text-xs text-foreground/70 mb-1">Duration</p>
-                              <p className="font-bold text-secondary text-lg">{route.duration}</p>
-                            </div>
-                          </div>
-
-                          {/* Safety Score Bar */}
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <p className="text-xs font-semibold text-foreground/70">Safety Score</p>
-                              <p className="text-sm font-bold text-primary">
-                                {(10 - (route as any).riskScore).toFixed(1)}/10
-                              </p>
-                            </div>
-                            <div className="w-full h-2 bg-muted/40 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full transition-all duration-500 rounded-full ${
-                                  route.riskLevel === "low"
-                                    ? "bg-gradient-to-r from-green-500 to-emerald-400"
-                                    : route.riskLevel === "medium"
-                                      ? "bg-gradient-to-r from-yellow-500 to-amber-400"
-                                      : "bg-gradient-to-r from-red-500 to-orange-400"
-                                }`}
-                                style={{ width: `${((10 - (route as any).riskScore) / 10) * 100}%` }}
-                              ></div>
-                            </div>
-                          </div>
-
-                          <p className="text-sm text-foreground/70 leading-relaxed">{route.description}</p>
-
-                          {/* Safety Recommendations */}
-                          {(route as any).safetyRecommendations && (route as any).safetyRecommendations.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-primary/20">
-                              <p className="text-xs font-semibold text-foreground/70 mb-2">Safety Tips</p>
-                              <ul className="space-y-1">
-                                {(route as any).safetyRecommendations.slice(0, 2).map((rec: string, i: number) => (
-                                  <li key={i} className="text-xs text-foreground/60 flex items-start gap-2">
-                                    <span className="text-primary mt-1">•</span>
-                                    <span>{rec}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={handleCalculateRoute}
+              disabled={loading || !selectedDestination}
+              className="w-full bg-[#7C3AED] text-white py-3 rounded-lg hover:bg-opacity-95 transition font-semibold disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+              {loading ? "Calculating..." : "Calculate Safe Route"}
+            </button>
           </div>
+
+          {/* Illustration + Map */}
+          <div className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+            <div className="bg-white dark:bg-[rgba(255,255,255,0.03)] rounded-2xl p-6 border border-[#6D28D9]/30" style={{ boxShadow: "0 0 15px rgba(79,70,229,0.12)" }}>
+              <img src="/illustrations/safe-route-illustration.png" alt="route" className="w-full h-auto rounded-lg" />
+            </div>
+
+            {mapReady && startLocation && endLocation && (
+              <div className="rounded-2xl overflow-hidden">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Interactive Route Map</h2>
+                <EnhancedMapView
+                  startLat={startLocation.lat}
+                  startLng={startLocation.lng}
+                  endLat={endLocation.lat}
+                  endLng={endLocation.lng}
+                  waypoints={selectedWaypoints}
+                  routeCoordinates={routes[0]?.coordinates}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Routes Display (kept similar) */}
+          {routes.length > 0 ? (
+            <div className="space-y-6">
+              {routes.map((route) => (
+                <div
+                  key={route.type}
+                  onClick={() => setSelectedRoute(route.type)}
+                  className={`bg-white dark:bg-[rgba(255,255,255,0.03)] rounded-2xl p-6 shadow-md cursor-pointer transition-all border ${
+                    selectedRoute === route.type
+                      ? "border-[#7C3AED] shadow-lg scale-105"
+                      : "border-[#F0E9FF] hover:border-[#7C3AED]"
+                  }`}
+                  style={{ boxShadow: selectedRoute === route.type ? "0 8px 30px rgba(79,70,229,0.18)" : "0 4px 12px rgba(0,0,0,0.04)" }}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 capitalize mb-2">{route.type} Route</h3>
+                      <p className="text-gray-600 dark:text-gray-300">{route.description}</p>
+                    </div>
+                    <span
+                      className={`px-4 py-2 rounded-full font-semibold flex items-center gap-2 border-2 ${getRiskColor(
+                        route.riskLevel,
+                      )}`}
+                    >
+                      {getRiskIcon(route.riskLevel)}
+                      {route.riskLevel.charAt(0).toUpperCase() + route.riskLevel.slice(1)} Risk
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 pb-4 border-b-2 border-[#F0E9FF]">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Distance</p>
+                      <p className="text-xl font-bold text-[#7C3AED]">{route.distance}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Duration</p>
+                      <p className="text-xl font-bold text-[#7C3AED] flex items-center gap-2">
+                        <Clock className="w-5 h-5" /> {route.duration}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Waypoints:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {route.waypoints.map((point, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-[#F7EEFF] text-[#7C3AED] rounded-full text-sm font-medium">
+                          {point}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {route.safetyRecommendations && route.safetyRecommendations.length > 0 && (
+                    <div className="mb-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                      <p className="font-semibold text-yellow-800 text-sm mb-2">Safety Recommendations:</p>
+                      <ul className="text-xs text-yellow-700 space-y-1">
+                        {route.safetyRecommendations.map((rec, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span>•</span>
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {selectedRoute === route.type && !isNavigating && (
+                    <button
+                      onClick={handleStartNavigation}
+                      className="w-full bg-[#4F46E5] text-white py-3 rounded-xl font-bold hover:bg-opacity-95 transition flex items-center justify-center gap-2"
+                    >
+                      <Play className="w-5 h-5" />
+                      Start Navigation
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            !loading && (
+              <div className="text-center py-12 bg-white rounded-2xl border border-[#F0E9FF]">
+                <MapPin className="w-12 h-12 text-[#D6BCFA] mx-auto mb-4" />
+                <p className="text-gray-600 text-lg">Calculate a route to get started with safe navigation</p>
+              </div>
+            )
+          )}
         </div>
       </div>
     </div>
